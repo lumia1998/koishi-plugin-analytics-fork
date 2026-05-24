@@ -1,0 +1,10 @@
+node_modules/
+.yarn/
+.pnp.*
+.DS_Store
+*.log
+*.tgz
+coverage/
+.cache/
+.vite/
+*.tsbuildinfo
