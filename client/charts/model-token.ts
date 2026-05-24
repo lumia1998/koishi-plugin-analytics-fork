@@ -4,7 +4,6 @@ import type * as echarts from 'echarts'
 import { emptyChart, Tooltip } from './utils'
 
 const VChart = defineAsyncComponent(() => import('./echarts'))
-const tokenColor = '#2563eb'
 
 type Range = 'day' | 'week' | 'month'
 
@@ -13,31 +12,95 @@ interface ModelTokenPoint {
   totalTokens: number
 }
 
+interface ModelTokenData {
+  name: string
+  totalTokens: number
+  color: string
+}
+
+interface TokenScale {
+  unit: '' | 'K' | 'M'
+  divisor: number
+  fraction: number
+  interval?: number
+}
+
 const rangeLabel: Record<Range, string> = {
   day: '最近一天',
   week: '最近一周',
   month: '最近一个月',
 }
 
-const axisInterval: Record<Range, number> = {
+const millionInterval: Record<Range, number> = {
   day: 0.5,
   week: 5,
   month: 10,
 }
 
-function formatTokens(tokens: number) {
-  if (tokens >= 1000000) return `${+(tokens / 1000000).toFixed(1)}M`
-  if (tokens >= 1000) return `${+(tokens / 1000).toFixed(1)}K`
-  return `${tokens}`
+const modelColors = [
+  '#2563eb',
+  '#16a34a',
+  '#f97316',
+  '#0891b2',
+  '#7c3aed',
+  '#dc2626',
+  '#ca8a04',
+  '#4f46e5',
+  '#be123c',
+  '#0f766e',
+]
+
+function trimFixed(value: number, fraction = 1) {
+  return value.toFixed(fraction).replace(/\.0$/, '')
 }
 
-function createTokenData(range: Range) {
+function getNiceInterval(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return undefined
+  const rough = value / 4
+  const magnitude = 10 ** Math.floor(Math.log10(rough))
+  const normalized = rough / magnitude
+  const step = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
+  return step * magnitude
+}
+
+function getTokenScale(maxTokens: number, range: Range): TokenScale {
+  if (maxTokens >= 1000000) {
+    const maxValue = maxTokens / 1000000
+    const interval = maxValue >= millionInterval[range]
+      ? millionInterval[range]
+      : getNiceInterval(maxValue)
+    return { unit: 'M', divisor: 1000000, fraction: maxValue < 10 ? 1 : 0, interval }
+  }
+  if (maxTokens >= 1000) {
+    const maxValue = maxTokens / 1000
+    return { unit: 'K', divisor: 1000, fraction: maxValue < 10 ? 1 : 0, interval: getNiceInterval(maxValue) }
+  }
+  return { unit: '', divisor: 1, fraction: 0, interval: getNiceInterval(maxTokens) }
+}
+
+function formatScaledValue(value: number, scale: TokenScale) {
+  return `${trimFixed(value, scale.fraction)}${scale.unit}`
+}
+
+function formatTokens(tokens: number) {
+  if (tokens >= 1000000) return `${trimFixed(tokens / 1000000, tokens < 10000000 ? 1 : 0)}M`
+  if (tokens >= 1000) return `${trimFixed(tokens / 1000, tokens < 10000 ? 1 : 0)}K`
+  return `${Math.round(tokens)}`
+}
+
+function formatPercent(value: number) {
+  return `${trimFixed(value * 100, value < 0.1 ? 1 : 0)}%`
+}
+
+function createTokenData(range: Range): ModelTokenData[] {
   const usage = store.analytics?.chatlunaModelUsage?.[range] as ModelTokenPoint[] | undefined
-  return (usage || []).map(item => ({
-    name: item.model || '未知模型',
-    value: item.totalTokens / 1000000,
-    totalTokens: item.totalTokens,
-  }))
+  return (usage || [])
+    .map((item, index) => ({
+      name: item.model || '未知模型',
+      totalTokens: Math.max(0, item.totalTokens || 0),
+      color: modelColors[index % modelColors.length],
+    }))
+    .filter(item => item.totalTokens > 0)
 }
 
 const ModelTokenChart = defineComponent({
@@ -48,16 +111,21 @@ const ModelTokenChart = defineComponent({
 
     return () => {
       if (!store.analytics) return null
+
       const data = createTokenData(range.value)
+      const totalTokens = data.reduce((sum, item) => sum + item.totalTokens, 0)
+      const maxTokens = Math.max(0, ...data.map(item => item.totalTokens))
+      const scale = getTokenScale(maxTokens, range.value)
+
       const option: echarts.EChartsOption = data.length ? {
-        color: [tokenColor],
+        color: data.map(item => item.color),
         grid: {
-          top: 32,
-          left: 58,
-          right: 24,
+          top: 28,
+          left: 64,
+          right: 28,
           bottom: 78,
         },
-        tooltip: Tooltip.axis<{ value: number; dataIndex: number }>((params) => {
+        tooltip: Tooltip.axis<{ value: number; totalTokens: number; dataIndex: number }>((params) => {
           const point = data[params[0]?.dataIndex ?? 0]
           return [
             point?.name ?? '',
@@ -67,50 +135,76 @@ const ModelTokenChart = defineComponent({
         xAxis: {
           type: 'category',
           data: data.map(item => item.name),
+          axisTick: {
+            alignWithLabel: true,
+          },
           axisLabel: {
             interval: 0,
-            rotate: 35,
-            width: 92,
+            rotate: 28,
+            width: 110,
             overflow: 'truncate',
           },
         },
         yAxis: {
           type: 'value',
           min: 0,
-          interval: axisInterval[range.value],
+          interval: scale.interval,
           axisLabel: {
-            formatter: (value: number) => `${value}M`,
+            formatter: (value: number) => formatScaledValue(value, scale),
+          },
+          splitLine: {
+            lineStyle: {
+              type: 'dashed',
+              color: 'rgba(148, 163, 184, 0.28)',
+            },
           },
         },
         series: [{
           name: 'Token 总量',
           type: 'bar',
-          barMaxWidth: 40,
+          barMaxWidth: 42,
           data: data.map(item => ({
-            value: +item.value.toFixed(3),
+            value: +(item.totalTokens / scale.divisor).toFixed(3),
             totalTokens: item.totalTokens,
+            itemStyle: {
+              color: item.color,
+              borderRadius: [5, 5, 0, 0],
+            },
           })),
-          itemStyle: {
-            color: tokenColor,
-            borderRadius: [4, 4, 0, 0],
-          },
           label: {
             show: true,
             position: 'top',
+            color: '#64748b',
             formatter: ({ data }: any) => formatTokens(data.totalTokens),
           },
         }],
       } : emptyChart()
 
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart' }, {
+      const legend = data.map((item, index) => h('div', {
+        class: 'model-token-legend-item',
+        style: `--model-color: ${item.color}`,
+      }, [
+        h('span', { class: 'legend-rank' }, [`#${index + 1}`]),
+        h('span', { class: 'legend-dot' }),
+        h('span', { class: 'legend-main' }, [
+          h('span', { class: 'legend-name', title: item.name }, [item.name]),
+          h('span', { class: 'legend-share' }, [`${formatPercent(item.totalTokens / totalTokens)} 占比`]),
+        ]),
+        h('span', { class: 'legend-value' }, [formatTokens(item.totalTokens)]),
+      ]))
+
+      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-token-chart' }, {
         header: () => [
-          h('span', { class: 'left' }, ['按模型统计 Token']),
+          h('span', { class: 'left' }, ['模型用量']),
           h('span', { class: 'right' }, (Object.keys(rangeLabel) as Range[]).map(key => h('span', {
             class: 'tab-item' + (range.value === key ? ' active' : ''),
             onClick: () => range.value = key,
           }, [rangeLabel[key]]))),
         ],
-        default: () => h(VChart, { option, autoresize: true }),
+        default: () => h('div', { class: 'model-token-body' + (data.length ? ' has-legend' : ' is-empty') }, [
+          h('div', { class: 'model-token-plot' }, [h(VChart, { option, autoresize: true })]),
+          ...data.length ? [h('div', { class: 'model-token-legend' }, legend)] : [],
+        ]),
       })
     }
   },

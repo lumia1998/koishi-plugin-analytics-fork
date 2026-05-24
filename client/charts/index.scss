@@ -2,12 +2,15 @@
   header {
     display: flex;
     justify-content: space-between;
+    gap: 1rem;
 
     .right {
       font-size: 1rem;
       font-weight: normal;
       display: flex;
       gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .tab-item {
@@ -18,6 +21,78 @@
     .tab-item.active {
       color: var(--primary);
       border-bottom: 2px solid var(--primary);
+    }
+  }
+}
+
+.model-token-chart {
+  .model-token-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .model-token-plot {
+    min-width: 0;
+  }
+
+  .model-token-legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1.5rem;
+    padding: 0 1.5rem 1.25rem;
+  }
+
+  .model-token-legend-item {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 2.25rem 0.8rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--k-text-normal);
+  }
+
+  .legend-rank {
+    font-size: 0.8rem;
+    color: var(--k-text-light);
+  }
+
+  .legend-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--model-color);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--model-color) 14%, transparent);
+  }
+
+  .legend-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .legend-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .legend-share {
+    font-size: 0.82rem;
+    color: var(--k-text-light);
+  }
+
+  .legend-value {
+    font-weight: 600;
+    color: var(--k-text-normal);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .model-token-legend {
+      grid-template-columns: 1fr;
+      padding-inline: 1rem;
     }
   }
 }

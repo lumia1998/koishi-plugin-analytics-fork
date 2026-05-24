@@ -1,6 +1,5 @@
 import { Context } from '@koishijs/client'
 import CommandChart from './command'
-import BotChart from './bot'
 import HistoryChart from './history'
 import ModelTokenChart from './model-token'
 
@@ -11,6 +10,5 @@ export default (ctx: Context) => {
 
   ctx.plugin(HistoryChart)
   ctx.plugin(ModelTokenChart)
-  ctx.plugin(BotChart)
   ctx.plugin(CommandChart)
 }

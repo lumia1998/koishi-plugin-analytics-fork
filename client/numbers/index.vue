@@ -124,7 +124,7 @@ const emptyUsageStats: ChatLunaUsageRangeStats = {
   totalTokens: 0,
 }
 
-const tokenRange = ref<Range>('month')
+const tokenRange = ref<Range>('day')
 
 const usageOverview = computed(() => store.analytics.chatlunaUsageOverview)
 
@@ -308,23 +308,12 @@ function formatPercent(value: number) {
 }
 
 .today-card {
-  color: #fff;
-  background: var(--usage-accent);
-
-  .usage-title,
-  .usage-value,
-  .usage-footer {
-    color: #fff;
-  }
-
-  .icon-wrap {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.16);
-  }
+  --usage-accent: #d97706;
+  --usage-accent-soft: rgba(217, 119, 6, 0.12);
 
   .usage-footer {
     padding-top: 0.85rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.24);
+    border-top: 1px solid var(--k-card-border);
   }
 }
 
