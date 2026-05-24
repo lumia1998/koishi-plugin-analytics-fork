@@ -103,29 +103,7 @@ import NumberGrid from './numbers/index.vue'
 }
 
 .page-home .welcome {
-  --welcome-title: 2rem;
-  --welcome-padding: 1.5rem 2rem;
-  --welcome-gap: 1rem;
-  --welcome-choice-padding: 0.75rem 1rem;
-
-  h1 {
-    margin-bottom: 0.5rem;
-  }
-
-  .choice h2 {
-    margin-top: 0.25rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .choice p {
-    margin: 0.25rem 0;
-  }
-
-  @media screen and (max-width: 768px) {
-    --welcome-title: 1.75rem;
-    --welcome-padding: 1.25rem 1.25rem;
-    --welcome-gap: 0.75rem;
-  }
+  display: none;
 }
 
 </style>

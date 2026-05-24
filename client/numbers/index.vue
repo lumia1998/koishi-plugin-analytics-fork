@@ -182,8 +182,8 @@ function formatPercent(value: number) {
 }
 
 .chatluna-usage-card {
-  --usage-accent: #b85c2e;
-  --usage-accent-soft: rgba(184, 92, 46, 0.12);
+  --usage-accent: #3b82f6;
+  --usage-accent-soft: rgba(59, 130, 246, 0.12);
   min-height: 168px;
 
   :deep(.k-card-body) {
@@ -248,7 +248,7 @@ function formatPercent(value: number) {
   height: 0.55rem;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(184, 92, 46, 0.18);
+  background: rgba(59, 130, 246, 0.16);
 }
 
 .progress-bar {
@@ -308,8 +308,8 @@ function formatPercent(value: number) {
 }
 
 .today-card {
-  --usage-accent: #d97706;
-  --usage-accent-soft: rgba(217, 119, 6, 0.12);
+  --usage-accent: #0ea5e9;
+  --usage-accent-soft: rgba(14, 165, 233, 0.12);
 
   .usage-footer {
     padding-top: 0.85rem;

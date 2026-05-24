@@ -39,15 +39,15 @@ const millionInterval: Record<Range, number> = {
 
 const modelColors = [
   '#2563eb',
-  '#16a34a',
-  '#f97316',
-  '#0891b2',
-  '#7c3aed',
-  '#dc2626',
-  '#ca8a04',
-  '#4f46e5',
-  '#be123c',
-  '#0f766e',
+  '#38bdf8',
+  '#0ea5e9',
+  '#64748b',
+  '#1d4ed8',
+  '#60a5fa',
+  '#0284c7',
+  '#475569',
+  '#3b82f6',
+  '#7dd3fc',
 ]
 
 function trimFixed(value: number, fraction = 1) {
@@ -123,7 +123,7 @@ const ModelTokenChart = defineComponent({
           top: 28,
           left: 64,
           right: 28,
-          bottom: 78,
+          bottom: 28,
         },
         tooltip: Tooltip.axis<{ value: number; totalTokens: number; dataIndex: number }>((params) => {
           const point = data[params[0]?.dataIndex ?? 0]
@@ -136,13 +136,10 @@ const ModelTokenChart = defineComponent({
           type: 'category',
           data: data.map(item => item.name),
           axisTick: {
-            alignWithLabel: true,
+            show: false,
           },
           axisLabel: {
-            interval: 0,
-            rotate: 28,
-            width: 110,
-            overflow: 'truncate',
+            show: false,
           },
         },
         yAxis: {
