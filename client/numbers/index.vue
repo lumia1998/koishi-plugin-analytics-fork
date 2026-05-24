@@ -1,27 +1,5 @@
 <template>
   <template v-if="store.analytics">
-    <div class="card-grid numeric-grid">
-      <k-slot name="analytic-number">
-        <k-slot-item>
-          <numeric icon="analytic:user" title="用户数量">
-            <template #default>{{ store.analytics.userCount }}</template>
-            <template #footer-left>昨日新增用户</template>
-            <template #footer-right>{{ store.analytics.userIncrement }}</template>
-          </numeric>
-          <numeric icon="analytic:guild" title="群组数量">
-            <template #default>{{ store.analytics.guildCount }}</template>
-            <template #footer-left>昨日新增群组</template>
-            <template #footer-right>{{ store.analytics.guildIncrement }}</template>
-          </numeric>
-          <numeric icon="analytic:heart" title="今日 DAU">
-            <template #default>{{ store.analytics.dauHistory[0] }}</template>
-            <template #footer-left>近期 DAU</template>
-            <template #footer-right>{{ +recentDau.toFixed(1) }}</template>
-          </numeric>
-        </k-slot-item>
-      </k-slot>
-    </div>
-
     <div class="card-grid chatluna-usage-grid">
       <k-card class="chatluna-usage-card">
         <div class="usage-card-header">
@@ -101,12 +79,9 @@
 
 <script setup lang="ts">
 
-import { provide, computed, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { store } from '@koishijs/client'
 import type { ChatLunaUsageRangeStats } from '../../src'
-import Numeric from './numeric.vue'
-
-provide('component:analytic-number', Numeric)
 
 type Range = 'day' | 'week' | 'month'
 
@@ -130,13 +105,6 @@ const usageOverview = computed(() => store.analytics.chatlunaUsageOverview)
 
 const tokenStats = computed(() => {
   return usageOverview.value?.[tokenRange.value] || emptyUsageStats
-})
-
-const recentDau = computed(() => {
-  const data = store.analytics.dauHistory.slice(1)
-  const historyLength = store.analytics.dauHistory.length - 1
-  if (!historyLength) return 0
-  return data.reduce((a, b) => a + b, 0) / Math.min(data.length, historyLength)
 })
 
 function trimFixed(value: number, fraction = 1) {
@@ -164,7 +132,6 @@ function formatPercent(value: number) {
 
 <style lang="scss" scoped>
 
-.numeric-grid,
 .chatluna-usage-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 
@@ -175,10 +142,6 @@ function formatPercent(value: number) {
   @media screen and (max-width: 768px) {
     grid-template-columns: 1fr;
   }
-}
-
-.chatluna-usage-grid {
-  margin-top: calc(var(--card-margin) * -0.25);
 }
 
 .chatluna-usage-card {
