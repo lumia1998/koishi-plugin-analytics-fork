@@ -19,10 +19,8 @@ interface ModelTokenData {
 }
 
 interface TokenScale {
-  unit: '' | 'K' | 'M'
-  divisor: number
-  fraction: number
-  interval?: number
+  max: number
+  interval: number
 }
 
 const rangeLabel: Record<Range, string> = {
@@ -31,58 +29,38 @@ const rangeLabel: Record<Range, string> = {
   month: '最近一个月',
 }
 
-const millionInterval: Record<Range, number> = {
-  day: 0.5,
-  week: 5,
-  month: 10,
-}
-
 const modelColors = [
-  '#2563eb',
-  '#38bdf8',
-  '#0ea5e9',
-  '#64748b',
-  '#1d4ed8',
-  '#60a5fa',
-  '#0284c7',
-  '#475569',
+  '#5470c6',
+  '#91cc75',
+  '#fac858',
+  '#ee6666',
+  '#73c0de',
+  '#3ba272',
+  '#fc8452',
+  '#9a60b4',
+  '#ea7ccc',
   '#3b82f6',
-  '#7dd3fc',
 ]
 
 function trimFixed(value: number, fraction = 1) {
   return value.toFixed(fraction).replace(/\.0$/, '')
 }
 
-function getNiceInterval(value: number) {
-  if (!Number.isFinite(value) || value <= 0) return undefined
-  const rough = value / 4
-  const magnitude = 10 ** Math.floor(Math.log10(rough))
-  const normalized = rough / magnitude
-  const step = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
-  return step * magnitude
-}
-
-function getTokenScale(maxTokens: number, range: Range): TokenScale {
-  if (maxTokens >= 1000000) {
-    const maxValue = maxTokens / 1000000
-    const interval = maxValue >= millionInterval[range]
-      ? millionInterval[range]
-      : getNiceInterval(maxValue)
-    return { unit: 'M', divisor: 1000000, fraction: maxValue < 10 ? 1 : 0, interval }
+function getAxisScale(maxTokens: number): TokenScale {
+  if (!Number.isFinite(maxTokens) || maxTokens <= 0) {
+    return { max: 4, interval: 1 }
   }
-  if (maxTokens >= 1000) {
-    const maxValue = maxTokens / 1000
-    return { unit: 'K', divisor: 1000, fraction: maxValue < 10 ? 1 : 0, interval: getNiceInterval(maxValue) }
-  }
-  return { unit: '', divisor: 1, fraction: 0, interval: getNiceInterval(maxTokens) }
-}
 
-function formatScaledValue(value: number, scale: TokenScale) {
-  return `${trimFixed(value, scale.fraction)}${scale.unit}`
+  const paddedMax = maxTokens * 1.03
+  const magnitude = 10 ** Math.floor(Math.log10(paddedMax))
+  const normalized = paddedMax / magnitude
+  const axisMax = Math.ceil(normalized * 10) / 10 * magnitude
+
+  return { max: axisMax, interval: axisMax / 4 }
 }
 
 function formatTokens(tokens: number) {
+  if (tokens >= 1000000000) return `${trimFixed(tokens / 1000000000, tokens < 10000000000 ? 1 : 0)}B`
   if (tokens >= 1000000) return `${trimFixed(tokens / 1000000, tokens < 10000000 ? 1 : 0)}M`
   if (tokens >= 1000) return `${trimFixed(tokens / 1000, tokens < 10000 ? 1 : 0)}K`
   return `${Math.round(tokens)}`
@@ -115,7 +93,7 @@ const ModelTokenChart = defineComponent({
       const data = createTokenData(range.value)
       const totalTokens = data.reduce((sum, item) => sum + item.totalTokens, 0)
       const maxTokens = Math.max(0, ...data.map(item => item.totalTokens))
-      const scale = getTokenScale(maxTokens, range.value)
+      const scale = getAxisScale(maxTokens)
 
       const option: echarts.EChartsOption = data.length ? {
         color: data.map(item => item.color),
@@ -145,9 +123,10 @@ const ModelTokenChart = defineComponent({
         yAxis: {
           type: 'value',
           min: 0,
+          max: scale.max,
           interval: scale.interval,
           axisLabel: {
-            formatter: (value: number) => formatScaledValue(value, scale),
+            formatter: (value: number) => formatTokens(value),
           },
           splitLine: {
             lineStyle: {
@@ -161,7 +140,7 @@ const ModelTokenChart = defineComponent({
           type: 'bar',
           barMaxWidth: 42,
           data: data.map(item => ({
-            value: +(item.totalTokens / scale.divisor).toFixed(3),
+            value: item.totalTokens,
             totalTokens: item.totalTokens,
             itemStyle: {
               color: item.color,

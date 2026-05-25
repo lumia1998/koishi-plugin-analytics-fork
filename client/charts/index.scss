@@ -37,31 +37,31 @@
 
   .model-token-legend {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem 1.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem 1rem;
     padding: 0 1.5rem 1.25rem;
   }
 
   .model-token-legend-item {
     min-width: 0;
     display: grid;
-    grid-template-columns: 2.25rem 0.8rem minmax(0, 1fr) auto;
+    grid-template-columns: 1.8rem 0.6rem minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.4rem;
     color: var(--k-text-normal);
   }
 
   .legend-rank {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--k-text-light);
   }
 
   .legend-dot {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.55rem;
+    height: 0.55rem;
     border-radius: 50%;
     background: var(--model-color);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--model-color) 14%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--model-color) 14%, transparent);
   }
 
   .legend-main {
@@ -76,10 +76,11 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 600;
+    font-size: 0.8rem;
   }
 
   .legend-share {
-    font-size: 0.82rem;
+    font-size: 0.7rem;
     color: var(--k-text-light);
   }
 
@@ -87,6 +88,13 @@
     font-weight: 600;
     color: var(--k-text-normal);
     white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 1280px) {
+    .model-token-legend {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 768px) {
