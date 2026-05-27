@@ -7,6 +7,14 @@
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
               <span class="usage-title">今日成功率</span>
+              <span class="info-tooltip-wrap">
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span class="tooltip-content">今日所有 API 请求的成功率（成功次数 / 总请求次数）</span>
+              </span>
             </span>
           </div>
 
@@ -21,11 +29,6 @@
           <div class="progress-track">
             <span class="progress-bar" :style="{ width: formatPercent(dayStats.successRate) }"></span>
           </div>
-
-          <div class="usage-footer split">
-            <span>{{ formatCompact(dayStats.successfulRequests) }} 成功</span>
-            <span>{{ formatCompact(dayStats.failedRequests) }} 失败</span>
-          </div>
         </k-card>
 
         <k-card class="chatluna-usage-card token-card">
@@ -33,6 +36,14 @@
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:token" /></span>
               <span class="usage-title">Token 用量</span>
+              <span class="info-tooltip-wrap">
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span class="tooltip-content">在所选周期内消耗的 Token 总量，包含输入、输出及缓存</span>
+              </span>
             </span>
 
             <span class="range-tabs" role="tablist" aria-label="Token 统计周期">
@@ -66,6 +77,14 @@
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:pulse" /></span>
               <span class="usage-title">今日请求次数</span>
+              <span class="info-tooltip-wrap">
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span class="tooltip-content">今日向 API 发起请求的总次数，包含成功 and 失败的请求</span>
+              </span>
             </span>
           </div>
 
@@ -75,10 +94,6 @@
               <strong>{{ trendSymbol(activityTrend.tone) }} {{ activityTrend.text }}</strong>
               <small>{{ activityTrend.label }}</small>
             </span>
-          </div>
-
-          <div class="usage-footer">
-            <span>{{ activityMeta }}</span>
           </div>
         </k-card>
       </div>
@@ -379,11 +394,69 @@ function trendSymbol(tone: TrendTone) {
   position: absolute;
   left: 1rem;
   right: 1rem;
-  bottom: 1.15rem;
-  height: 0.42rem;
+  bottom: 0.85rem;
+  height: 0.45rem;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(22, 163, 74, 0.14);
+  background: rgba(34, 197, 94, 0.16);
+}
+
+.info-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.35rem;
+  color: #94a3b8;
+  cursor: pointer;
+  vertical-align: middle;
+
+  &:hover {
+    color: #64748b;
+    
+    .tooltip-content {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+}
+
+.info-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+  stroke-width: 2.2;
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: 135%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #1e293b;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
+  z-index: 1000;
+  pointer-events: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+  }
 }
 
 .progress-bar {
