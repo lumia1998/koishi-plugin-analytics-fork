@@ -24,6 +24,9 @@ export interface MessageStats {
 
 export interface ModelTokenUsage {
   model: string
+  inputTokens: number
+  outputTokens: number
+  cachedTokens: number
   totalTokens: number
 }
 
@@ -481,24 +484,48 @@ class Analytics extends DataService<Analytics.Payload> {
           createdAt: { $gte: start, $lt: end },
           success: true,
         }) as ChatLunaUsageRecord[]
-        const totals = new Map<string, number>()
+        const totals = new Map<string, Omit<ModelTokenUsage, 'model'>>()
         for (const row of rows) {
-          const value = row.usageMetadata?.total_tokens ?? 0
-          if (value <= 0) continue
-          totals.set(row.model, (totals.get(row.model) ?? 0) + value)
+          const metadata = row.usageMetadata
+          const totalTokens = metadata?.total_tokens ?? 0
+          if (totalTokens <= 0) continue
+
+          const stats = totals.get(row.model) ?? {
+            inputTokens: 0,
+            outputTokens: 0,
+            cachedTokens: 0,
+            totalTokens: 0,
+          }
+          stats.inputTokens += metadata?.input_tokens ?? 0
+          stats.outputTokens += metadata?.output_tokens ?? 0
+          stats.cachedTokens += (metadata?.input_token_details?.cache_read ?? 0) + (metadata?.input_token_details?.cache_creation ?? 0)
+          stats.totalTokens += totalTokens
+          totals.set(row.model, stats)
         }
         const sorted = [...totals.entries()]
-          .map(([model, totalTokens]) => ({ model, totalTokens }))
+          .map(([model, stats]) => ({ model, ...stats }))
           .sort((a, b) => b.totalTokens - a.totalTokens)
         if (sorted.length <= MODEL_USAGE_LIMIT) return sorted
 
         const visibleCount = MODEL_USAGE_LIMIT - 1
-        const hiddenTotal = sorted
+        const hiddenStats = sorted
           .slice(visibleCount)
-          .reduce((sum, item) => sum + item.totalTokens, 0)
+          .reduce<ModelTokenUsage>((stats, item) => {
+            stats.inputTokens += item.inputTokens
+            stats.outputTokens += item.outputTokens
+            stats.cachedTokens += item.cachedTokens
+            stats.totalTokens += item.totalTokens
+            return stats
+          }, {
+            model: '其他模型',
+            inputTokens: 0,
+            outputTokens: 0,
+            cachedTokens: 0,
+            totalTokens: 0,
+          })
         return [
           ...sorted.slice(0, visibleCount),
-          { model: '其他模型', totalTokens: hiddenTotal },
+          hiddenStats,
         ]
       } catch (error) {
         logger.debug(error)

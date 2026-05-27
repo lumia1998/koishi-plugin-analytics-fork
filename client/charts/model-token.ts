@@ -9,11 +9,17 @@ type Range = 'day' | 'week' | 'month'
 
 interface ModelTokenPoint {
   model: string
+  inputTokens: number
+  outputTokens: number
+  cachedTokens: number
   totalTokens: number
 }
 
 interface ModelTokenData {
   name: string
+  inputTokens: number
+  outputTokens: number
+  cachedTokens: number
   totalTokens: number
   color: string
 }
@@ -75,6 +81,9 @@ function createTokenData(range: Range): ModelTokenData[] {
   return (usage || [])
     .map((item, index) => ({
       name: item.model || '未知模型',
+      inputTokens: Math.max(0, item.inputTokens || 0),
+      outputTokens: Math.max(0, item.outputTokens || 0),
+      cachedTokens: Math.max(0, item.cachedTokens || 0),
       totalTokens: Math.max(0, item.totalTokens || 0),
       color: modelColors[index % modelColors.length],
     }))
@@ -108,6 +117,9 @@ const ModelTokenChart = defineComponent({
           return [
             point?.name ?? '',
             `Token 总量：${formatTokens(point?.totalTokens ?? 0)}`,
+            `输入：${formatTokens(point?.inputTokens ?? 0)}`,
+            `输出：${formatTokens(point?.outputTokens ?? 0)}`,
+            `缓存：${formatTokens(point?.cachedTokens ?? 0)}`,
           ].join('<br>')
         }),
         xAxis: {
@@ -142,6 +154,9 @@ const ModelTokenChart = defineComponent({
           data: data.map(item => ({
             value: item.totalTokens,
             totalTokens: item.totalTokens,
+            inputTokens: item.inputTokens,
+            outputTokens: item.outputTokens,
+            cachedTokens: item.cachedTokens,
             itemStyle: {
               color: item.color,
               borderRadius: [5, 5, 0, 0],

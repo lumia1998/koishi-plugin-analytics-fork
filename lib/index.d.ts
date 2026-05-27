@@ -19,6 +19,9 @@ export interface MessageStats {
 }
 export interface ModelTokenUsage {
     model: string;
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens: number;
     totalTokens: number;
 }
 export interface ModelTokenUsagePayload {

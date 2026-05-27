@@ -1,25 +1,33 @@
 <template>
   <template v-if="store.analytics">
     <section class="usage-overview">
-      <div class="usage-overview-header">
-        <div class="overview-copy">
-          <h2>欢迎</h2>
-          <p>了解你的 API 使用概览和模型表现</p>
-        </div>
-
-        <div class="overview-toolbar">
-          <div class="toolbar-main">
-            <div class="date-chip">
-              <k-icon name="analytic:history" />
-              <span>{{ dateRangeLabel }}</span>
-            </div>
+      <div class="card-grid chatluna-usage-grid">
+        <k-card class="chatluna-usage-card success-card">
+          <div class="usage-card-header">
+            <span class="usage-card-heading">
+              <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
+              <span class="usage-title">今日成功率</span>
+            </span>
           </div>
 
-          <p class="update-hint">数据更新于 {{ updatedAgoText }}</p>
-        </div>
-      </div>
+          <div class="metric-row">
+            <div class="usage-value">{{ formatPercent(dayStats.successRate) }}</div>
+            <span :class="['trend-badge', successTrend.tone]">
+              <strong>{{ trendSymbol(successTrend.tone) }} {{ successTrend.text }}</strong>
+              <small>{{ successTrend.label }}</small>
+            </span>
+          </div>
 
-      <div class="card-grid chatluna-usage-grid">
+          <div class="progress-track">
+            <span class="progress-bar" :style="{ width: formatPercent(dayStats.successRate) }"></span>
+          </div>
+
+          <div class="usage-footer split">
+            <span>{{ formatCompact(dayStats.successfulRequests) }} 成功</span>
+            <span>{{ formatCompact(dayStats.failedRequests) }} 失败</span>
+          </div>
+        </k-card>
+
         <k-card class="chatluna-usage-card token-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
@@ -73,32 +81,6 @@
             <span>{{ activityMeta }}</span>
           </div>
         </k-card>
-
-        <k-card class="chatluna-usage-card success-card">
-          <div class="usage-card-header">
-            <span class="usage-card-heading">
-              <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
-              <span class="usage-title">今日成功率</span>
-            </span>
-          </div>
-
-          <div class="metric-row">
-            <div class="usage-value">{{ formatPercent(dayStats.successRate) }}</div>
-            <span :class="['trend-badge', successTrend.tone]">
-              <strong>{{ trendSymbol(successTrend.tone) }} {{ successTrend.text }}</strong>
-              <small>{{ successTrend.label }}</small>
-            </span>
-          </div>
-
-          <div class="progress-track">
-            <span class="progress-bar" :style="{ width: formatPercent(dayStats.successRate) }"></span>
-          </div>
-
-          <div class="usage-footer split">
-            <span>{{ formatCompact(dayStats.successfulRequests) }} 成功</span>
-            <span>{{ formatCompact(dayStats.failedRequests) }} 失败</span>
-          </div>
-        </k-card>
       </div>
     </section>
   </template>
@@ -118,10 +100,10 @@ interface TrendInfo {
   tone: TrendTone
 }
 
-const rangeMeta: Record<Range, { label: string; compareLabel: string; rangeLabel: string }> = {
-  day: { label: '日', compareLabel: '较昨日', rangeLabel: '今日' },
-  week: { label: '周', compareLabel: '较前 7 天', rangeLabel: '近 7 日' },
-  month: { label: '月', compareLabel: '较前 30 天', rangeLabel: '近 30 日' },
+const rangeMeta: Record<Range, { label: string; compareLabel: string }> = {
+  day: { label: '日', compareLabel: '较昨日' },
+  week: { label: '周', compareLabel: '较前 7 天' },
+  month: { label: '月', compareLabel: '较前 30 天' },
 }
 
 const tokenRanges = Object.entries(rangeMeta).map(([value, meta]) => ({
@@ -172,12 +154,6 @@ const activityMeta = computed(() => {
   return `昨日 ${formatCompact(previousDayStats.value.requests)}`
 })
 
-const dateRangeLabel = computed(() => {
-  return rangeMeta.day.rangeLabel
-})
-
-const updatedAgoText = computed(() => formatUpdatedAgo(usageOverview.value?.updatedAt))
-
 function trimFixed(value: number, fraction = 1) {
   return value.toFixed(fraction).replace(/\.0$/, '')
 }
@@ -224,90 +200,16 @@ function trendSymbol(tone: TrendTone) {
   return '→'
 }
 
-function formatUpdatedAgo(value?: string) {
-  if (!value) return '刚刚'
-
-  const diff = Math.max(0, Date.now() - new Date(value).getTime())
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return '刚刚'
-  if (minutes < 60) return `${minutes} 分钟前`
-
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} 小时前`
-
-  const days = Math.floor(hours / 24)
-  return `${days} 天前`
-}
 </script>
 
 <style lang="scss" scoped>
 .usage-overview {
   margin: var(--card-margin);
-  padding: 1rem 0 0;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-}
-
-.usage-overview-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 0.9rem;
-  padding: 0 0.25rem;
-}
-
-.overview-copy {
-  h2 {
-    margin: 0;
-    font-size: 1.15rem;
-    line-height: 1.25;
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  p {
-    margin: 0.18rem 0 0;
-    font-size: 0.82rem;
-    color: #64748b;
-  }
-}
-
-.overview-toolbar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.35rem;
-  min-width: min(100%, 28rem);
-}
-
-.toolbar-main {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-
-.date-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.72rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  background: #fff;
-  color: #0f172a;
-  font-size: 0.84rem;
-  box-shadow: none;
-
-  .k-icon {
-    width: 0.9rem;
-    height: 0.9rem;
-    color: #64748b;
-  }
 }
 
 .range-tabs {
@@ -338,12 +240,6 @@ function formatUpdatedAgo(value?: string) {
     background: #2f7df7;
     box-shadow: 0 0.35rem 0.8rem rgba(47, 125, 247, 0.24);
   }
-}
-
-.update-hint {
-  margin: 0;
-  font-size: 0.76rem;
-  color: #64748b;
 }
 
 .chatluna-usage-grid {
@@ -539,40 +435,12 @@ function formatUpdatedAgo(value?: string) {
 }
 
 @media screen and (max-width: 900px) {
-  .usage-overview-header {
-    flex-direction: column;
-  }
-
-  .overview-toolbar {
-    width: 100%;
-    align-items: stretch;
-    min-width: 0;
-  }
-
-  .toolbar-main {
-    justify-content: space-between;
-  }
-
   .split {
     align-items: flex-start;
   }
 }
 
 @media screen and (max-width: 640px) {
-  .overview-copy h2 {
-    font-size: 1.05rem;
-  }
-
-  .toolbar-main {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .date-chip {
-    width: 100%;
-    justify-content: center;
-  }
-
   .usage-value {
     font-size: 1.75rem;
   }
