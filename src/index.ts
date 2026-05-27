@@ -35,10 +35,19 @@ export interface ModelTokenUsagePayload {
 
 export interface ChatLunaUsageRangeStats {
   requests: number
+  successfulRequests: number
+  failedRequests: number
+  successRate: number
   inputTokens: number
   outputTokens: number
   cachedTokens: number
   totalTokens: number
+}
+
+export interface ChatLunaUsageRangePayload {
+  day: ChatLunaUsageRangeStats
+  week: ChatLunaUsageRangeStats
+  month: ChatLunaUsageRangeStats
 }
 
 export interface ChatLunaUsageOverview {
@@ -49,6 +58,8 @@ export interface ChatLunaUsageOverview {
   todayRequests: number
   weekRequests: number
   monthRequests: number
+  updatedAt: string
+  previous: ChatLunaUsageRangePayload
   day: ChatLunaUsageRangeStats
   week: ChatLunaUsageRangeStats
   month: ChatLunaUsageRangeStats
@@ -70,14 +81,26 @@ interface ChatLunaUsageRecord {
 }
 
 const logger = new Logger('analytics')
+const MODEL_USAGE_LIMIT = 10
 
 function createEmptyUsageStats(): ChatLunaUsageRangeStats {
   return {
     requests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    successRate: 0,
     inputTokens: 0,
     outputTokens: 0,
     cachedTokens: 0,
     totalTokens: 0,
+  }
+}
+
+function createEmptyUsageRangePayload(): ChatLunaUsageRangePayload {
+  return {
+    day: createEmptyUsageStats(),
+    week: createEmptyUsageStats(),
+    month: createEmptyUsageStats(),
   }
 }
 
@@ -90,6 +113,8 @@ function createEmptyUsageOverview(): ChatLunaUsageOverview {
     todayRequests: 0,
     weekRequests: 0,
     monthRequests: 0,
+    updatedAt: new Date().toISOString(),
+    previous: createEmptyUsageRangePayload(),
     day: createEmptyUsageStats(),
     week: createEmptyUsageStats(),
     month: createEmptyUsageStats(),
@@ -97,12 +122,21 @@ function createEmptyUsageOverview(): ChatLunaUsageOverview {
 }
 
 function addUsageStats(target: ChatLunaUsageRangeStats, row: ChatLunaUsageRecord) {
-  const metadata = row.usageMetadata
   target.requests += 1
+  if (row.success) target.successfulRequests += 1
+  else target.failedRequests += 1
+
+  const metadata = row.success ? row.usageMetadata : undefined
+  if (!metadata) return
+
   target.inputTokens += metadata?.input_tokens ?? 0
   target.outputTokens += metadata?.output_tokens ?? 0
   target.cachedTokens += (metadata?.input_token_details?.cache_read ?? 0) + (metadata?.input_token_details?.cache_creation ?? 0)
   target.totalTokens += metadata?.total_tokens ?? 0
+}
+
+function finishUsageStats(stats: ChatLunaUsageRangeStats) {
+  stats.successRate = stats.requests ? stats.successfulRequests / stats.requests : 0
 }
 
 class Analytics extends DataService<Analytics.Payload> {
@@ -366,15 +400,19 @@ class Analytics extends DataService<Analytics.Payload> {
   private async getChatLunaUsageOverview(): Promise<ChatLunaUsageOverview> {
     const overview = createEmptyUsageOverview()
     const end = new Date()
-    const dayStart = Time.fromDateNumber(Time.getDateNumber())
-    const weekStart = new Date(+end - Time.day * 7)
-    const monthStart = new Date(+end - Time.day * 30)
+    const today = Time.getDateNumber()
+    const dayStart = Time.fromDateNumber(today)
+    const previousDayStart = Time.fromDateNumber(today - 1)
+    const weekStart = Time.fromDateNumber(today - 6)
+    const previousWeekStart = Time.fromDateNumber(today - 13)
+    const monthStart = Time.fromDateNumber(today - 29)
+    const previousMonthStart = Time.fromDateNumber(today - 59)
 
     try {
       const [allRows, recentRows] = await Promise.all([
         this.ctx.database.get('chatluna_usage' as any, {}) as Promise<ChatLunaUsageRecord[]>,
         this.ctx.database.get('chatluna_usage' as any, {
-          createdAt: { $gte: monthStart, $lt: end },
+          createdAt: { $gte: previousMonthStart, $lt: end },
         }) as Promise<ChatLunaUsageRecord[]>,
       ])
 
@@ -387,14 +425,40 @@ class Analytics extends DataService<Analytics.Payload> {
 
       for (const row of recentRows) {
         const createdAt = +new Date(row.createdAt)
-        if (createdAt >= +dayStart) addUsageStats(overview.day, row)
-        if (createdAt >= +weekStart) addUsageStats(overview.week, row)
-        addUsageStats(overview.month, row)
+        if (createdAt >= +dayStart) {
+          addUsageStats(overview.day, row)
+        } else if (createdAt >= +previousDayStart && createdAt < +dayStart) {
+          addUsageStats(overview.previous.day, row)
+        }
+
+        if (createdAt >= +weekStart) {
+          addUsageStats(overview.week, row)
+        } else if (createdAt >= +previousWeekStart && createdAt < +weekStart) {
+          addUsageStats(overview.previous.week, row)
+        }
+
+        if (createdAt >= +monthStart) {
+          addUsageStats(overview.month, row)
+        } else if (createdAt >= +previousMonthStart && createdAt < +monthStart) {
+          addUsageStats(overview.previous.month, row)
+        }
+      }
+
+      for (const stats of [
+        overview.day,
+        overview.week,
+        overview.month,
+        overview.previous.day,
+        overview.previous.week,
+        overview.previous.month,
+      ]) {
+        finishUsageStats(stats)
       }
 
       overview.todayRequests = overview.day.requests
       overview.weekRequests = overview.week.requests
       overview.monthRequests = overview.month.requests
+      overview.updatedAt = end.toISOString()
     } catch (error) {
       logger.debug(error)
     }
@@ -404,10 +468,11 @@ class Analytics extends DataService<Analytics.Payload> {
 
   private async getChatLunaModelUsage(): Promise<ModelTokenUsagePayload> {
     const end = new Date()
+    const today = Time.getDateNumber()
     const ranges = {
-      day: new Date(+end - Time.day),
-      week: new Date(+end - Time.day * 7),
-      month: new Date(+end - Time.day * 30),
+      day: Time.fromDateNumber(today),
+      week: Time.fromDateNumber(today - 6),
+      month: Time.fromDateNumber(today - 29),
     }
 
     const collect = async (start: Date) => {
@@ -422,10 +487,19 @@ class Analytics extends DataService<Analytics.Payload> {
           if (value <= 0) continue
           totals.set(row.model, (totals.get(row.model) ?? 0) + value)
         }
-        return [...totals.entries()]
+        const sorted = [...totals.entries()]
           .map(([model, totalTokens]) => ({ model, totalTokens }))
           .sort((a, b) => b.totalTokens - a.totalTokens)
-          .slice(0, 10)
+        if (sorted.length <= MODEL_USAGE_LIMIT) return sorted
+
+        const visibleCount = MODEL_USAGE_LIMIT - 1
+        const hiddenTotal = sorted
+          .slice(visibleCount)
+          .reduce((sum, item) => sum + item.totalTokens, 0)
+        return [
+          ...sorted.slice(0, visibleCount),
+          { model: '其他模型', totalTokens: hiddenTotal },
+        ]
       } catch (error) {
         logger.debug(error)
         return []

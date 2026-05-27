@@ -24,9 +24,9 @@ interface TokenScale {
 }
 
 const rangeLabel: Record<Range, string> = {
-  day: '最近一天',
-  week: '最近一周',
-  month: '最近一个月',
+  day: '今日',
+  week: '近 7 日',
+  month: '近 30 日',
 }
 
 const modelColors = [

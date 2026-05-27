@@ -28,10 +28,18 @@ export interface ModelTokenUsagePayload {
 }
 export interface ChatLunaUsageRangeStats {
     requests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    successRate: number;
     inputTokens: number;
     outputTokens: number;
     cachedTokens: number;
     totalTokens: number;
+}
+export interface ChatLunaUsageRangePayload {
+    day: ChatLunaUsageRangeStats;
+    week: ChatLunaUsageRangeStats;
+    month: ChatLunaUsageRangeStats;
 }
 export interface ChatLunaUsageOverview {
     totalRequests: number;
@@ -41,6 +49,8 @@ export interface ChatLunaUsageOverview {
     todayRequests: number;
     weekRequests: number;
     monthRequests: number;
+    updatedAt: string;
+    previous: ChatLunaUsageRangePayload;
     day: ChatLunaUsageRangeStats;
     week: ChatLunaUsageRangeStats;
     month: ChatLunaUsageRangeStats;
