@@ -213,9 +213,9 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .range-tabs {
-  padding: 0.14rem;
+  padding: 0.1rem;
   display: inline-flex;
-  gap: 0.08rem;
+  gap: 0.06rem;
   border-radius: 999px;
   background: #eef2f7;
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
@@ -223,9 +223,9 @@ function trendSymbol(tone: TrendTone) {
   button {
     border: 0;
     border-radius: 999px;
-    min-width: 2.2rem;
-    height: 1.65rem;
-    padding: 0 0.58rem;
+    min-width: 2rem;
+    height: 1.45rem;
+    padding: 0 0.5rem;
     background: transparent;
     color: #5f6673;
     font: inherit;
@@ -257,7 +257,7 @@ function trendSymbol(tone: TrendTone) {
 .chatluna-usage-card {
   --usage-accent: #2563eb;
   --usage-accent-soft: rgba(37, 99, 235, 0.08);
-  height: 168px;
+  height: 126px;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background: #fff;
@@ -265,16 +265,21 @@ function trendSymbol(tone: TrendTone) {
 
   :deep(.k-card-body) {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    padding: 1rem 1.1rem;
+    display: grid;
+    grid-template-rows: 1.75rem minmax(0, 1fr) 1rem;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem 0.75rem;
   }
 }
 
 .success-card {
   --usage-accent: #16a34a;
   --usage-accent-soft: rgba(22, 163, 74, 0.08);
+
+  :deep(.k-card-body) {
+    grid-template-rows: 1.75rem minmax(0, 1fr) 0.42rem 1rem;
+    gap: 0.2rem;
+  }
 }
 
 .activity-card {
@@ -292,7 +297,7 @@ function trendSymbol(tone: TrendTone) {
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  min-height: 1.9rem;
+  min-height: 0;
 }
 
 .usage-card-heading {
@@ -303,8 +308,8 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .icon-wrap {
-  width: 2rem;
-  height: 2rem;
+  width: 1.7rem;
+  height: 1.7rem;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -314,8 +319,8 @@ function trendSymbol(tone: TrendTone) {
   background: var(--usage-accent-soft);
 
   .k-icon {
-    width: 1rem;
-    height: 1rem;
+    width: 0.88rem;
+    height: 0.88rem;
   }
 }
 
@@ -331,14 +336,14 @@ function trendSymbol(tone: TrendTone) {
 
 .metric-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 3.3rem;
+  min-height: 0;
 }
 
 .usage-value {
-  font-size: 2rem;
+  font-size: 1.9rem;
   line-height: 1.05;
   font-weight: 850;
   color: #111827;
@@ -346,14 +351,13 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .token-value {
-  font-size: 2.15rem;
+  font-size: 1.9rem;
 }
 
 .usage-footer {
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   color: #697386;
   font-weight: 700;
-  margin-top: auto;
 }
 
 .split {
@@ -364,11 +368,11 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .progress-track {
-  height: 0.45rem;
+  height: 0.42rem;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(22, 163, 74, 0.14);
-  margin-top: 0.05rem;
+  align-self: center;
 }
 
 .progress-bar {
@@ -382,18 +386,18 @@ function trendSymbol(tone: TrendTone) {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.45rem;
+  gap: 0.18rem;
   text-align: right;
   white-space: nowrap;
 
   strong {
-    font-size: 0.86rem;
+    font-size: 0.78rem;
     line-height: 1;
     font-weight: 800;
   }
 
   small {
-    font-size: 0.76rem;
+    font-size: 0.68rem;
     color: #697386;
     font-weight: 700;
   }
@@ -416,7 +420,7 @@ function trendSymbol(tone: TrendTone) {
   align-items: center;
   gap: 0.38rem;
   min-width: 0;
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   color: #697386;
   font-weight: 800;
 
