@@ -1,6 +1,8 @@
 <template>
-  <number-grid></number-grid>
-  <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
+  <div class="dashboard-shell">
+    <number-grid></number-grid>
+    <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -13,8 +15,13 @@ import NumberGrid from './numbers/index.vue'
 
 .card-grid {
   display: grid;
-  margin: var(--card-margin);
   grid-gap: var(--card-margin);
+}
+
+.dashboard-shell {
+  margin: var(--card-margin);
+  display: grid;
+  gap: var(--card-margin);
 }
 
 .chart-grid {
@@ -29,7 +36,7 @@ import NumberGrid from './numbers/index.vue'
 
   .model-token-chart .echarts {
     width: 100%;
-    height: 390px;
+    height: 470px;
   }
 
   @media (min-width: 1280px) {
@@ -45,7 +52,7 @@ import NumberGrid from './numbers/index.vue'
 
       .model-token-chart .echarts {
         width: 100%;
-        height: 420px;
+        height: 470px;
       }
     }
 
@@ -57,7 +64,7 @@ import NumberGrid from './numbers/index.vue'
 
       .model-token-chart .echarts {
         width: 100%;
-        height: 400px;
+        height: 460px;
       }
     }
   }
@@ -73,7 +80,7 @@ import NumberGrid from './numbers/index.vue'
 
       .model-token-chart .echarts {
         width: 100%;
-        height: 400px;
+        height: 430px;
       }
     }
 
@@ -85,7 +92,7 @@ import NumberGrid from './numbers/index.vue'
 
       .model-token-chart .echarts {
         width: 100%;
-        height: 360px;
+        height: 320px;
       }
     }
 
@@ -96,7 +103,7 @@ import NumberGrid from './numbers/index.vue'
       }
 
       .model-token-chart .echarts {
-        height: 320px;
+        height: 280px;
       }
     }
   }

@@ -204,7 +204,7 @@ function trendSymbol(tone: TrendTone) {
 
 <style lang="scss" scoped>
 .usage-overview {
-  margin: var(--card-margin);
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -257,29 +257,24 @@ function trendSymbol(tone: TrendTone) {
 .chatluna-usage-card {
   --usage-accent: #2563eb;
   --usage-accent-soft: rgba(37, 99, 235, 0.08);
-  height: 126px;
+  height: 150px;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background: #fff;
   box-shadow: 0 0.75rem 1.8rem rgba(15, 23, 42, 0.06);
 
   :deep(.k-card-body) {
+    position: relative;
+    box-sizing: border-box;
     height: 100%;
-    display: grid;
-    grid-template-rows: 1.75rem minmax(0, 1fr) 1rem;
-    gap: 0.35rem;
-    padding: 0.9rem 1rem 0.75rem;
+    margin: 0;
+    padding: 1.1rem 1rem 0.9rem;
   }
 }
 
 .success-card {
   --usage-accent: #16a34a;
   --usage-accent-soft: rgba(22, 163, 74, 0.08);
-
-  :deep(.k-card-body) {
-    grid-template-rows: 1.75rem minmax(0, 1fr) 0.42rem 1rem;
-    gap: 0.2rem;
-  }
 }
 
 .activity-card {
@@ -293,6 +288,10 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .usage-card-header {
+  position: absolute;
+  top: 1.1rem;
+  left: 1rem;
+  right: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -335,6 +334,11 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .metric-row {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-38%);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -355,6 +359,10 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .usage-footer {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.85rem;
   font-size: 0.78rem;
   color: #697386;
   font-weight: 700;
@@ -368,11 +376,14 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .progress-track {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1.15rem;
   height: 0.42rem;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(22, 163, 74, 0.14);
-  align-self: center;
 }
 
 .progress-bar {
@@ -416,6 +427,10 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .token-breakdown {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.85rem;
   display: flex;
   align-items: center;
   gap: 0.38rem;
