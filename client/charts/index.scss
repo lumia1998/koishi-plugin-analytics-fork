@@ -25,7 +25,6 @@
   }
 }
 
-.model-distribution-card,
 .model-trend-card {
   .k-card-body {
     margin-block: 0.9rem 0.85rem;
@@ -68,131 +67,6 @@
   }
 }
 
-.model-distribution-card {
-  order: -1;
-
-  .model-distribution-body {
-    display: grid;
-    grid-template-columns: minmax(300px, 1fr) minmax(260px, 0.84fr);
-    align-items: center;
-    gap: 1.15rem;
-    min-height: 360px;
-    padding: 0.15rem 1.45rem 1rem;
-  }
-
-  .model-donut-wrap {
-    min-width: 0;
-    height: 360px;
-  }
-
-  .model-distribution-table {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0.35rem 0 0;
-  }
-
-  .model-table-rows {
-    min-height: 0;
-    overflow: visible;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    padding-right: 0.15rem;
-  }
-
-  .model-distribution-row {
-    display: grid;
-    gap: 0.22rem;
-    min-height: 2.72rem;
-    padding: 0.31rem 0.2rem;
-    color: var(--k-text-normal);
-    font-size: 0.78rem;
-  }
-
-  .model-row-main,
-  .model-row-stats {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .model-name {
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.28rem;
-    color: var(--k-text-normal);
-    font-weight: 700;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .model-name::before {
-    content: '';
-    width: 0.64rem;
-    height: 0.64rem;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: var(--model-color);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--model-color) 12%, transparent);
-  }
-
-  .model-requests,
-  .model-tokens,
-  .model-share {
-    white-space: nowrap;
-    color: var(--k-text-normal);
-  }
-
-  .model-row-stats {
-    justify-content: flex-start;
-  }
-
-  .model-requests,
-  .model-tokens {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.2rem;
-    min-width: 4.8rem;
-  }
-
-  .model-requests strong,
-  .model-tokens strong {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: var(--k-text-normal);
-  }
-
-  .model-requests small,
-  .model-tokens small {
-    font-size: 0.66rem;
-    font-weight: 600;
-    color: var(--k-text-light);
-  }
-
-  .model-share {
-    flex: 0 0 auto;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--k-text-light);
-  }
-
-  @media (max-width: 1100px) {
-    .model-distribution-body {
-      grid-template-columns: 1fr;
-    }
-
-    .model-distribution-table {
-      padding-left: 0;
-    }
-  }
-}
-
 .model-trend-card {
   order: -2;
   height: 100%;
@@ -207,6 +81,58 @@
     .model-trend-body {
       height: 360px;
     }
+  }
+}
+
+/* ECharts 柱状图 tooltip 表格对齐 */
+.model-trend-body {
+  .tooltip-header {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #374151;
+  }
+
+  .tooltip-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    tr {
+      line-height: 1.65;
+    }
+
+    .tooltip-label {
+      text-align: left;
+      padding-right: 1.5rem;
+      white-space: nowrap;
+    }
+
+    .tooltip-value {
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .tooltip-total {
+      border-top: 1px solid rgba(148, 163, 184, 0.3);
+
+      .tooltip-label,
+      .tooltip-value {
+        padding-top: 0.35rem;
+        font-weight: 800;
+      }
+    }
+  }
+
+  .tooltip-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
   }
 }
 
