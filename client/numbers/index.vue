@@ -2,6 +2,33 @@
   <template v-if="store.analytics">
     <section class="usage-overview">
       <div class="card-grid chatluna-usage-grid">
+        <k-card class="chatluna-usage-card requests-card">
+          <div class="usage-card-header">
+            <span class="usage-card-heading">
+              <span class="icon-wrap"><k-icon name="analytic:request" /></span>
+              <span class="usage-title">总请求</span>
+              <span class="info-tooltip-wrap">
+                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span class="tooltip-content">自插件启用以来向 API 发起请求的总次数</span>
+              </span>
+            </span>
+          </div>
+
+          <div class="metric-row">
+            <div class="usage-value">{{ formatCompact(usageOverview?.totalRequests || 0) }}</div>
+            <span class="trend-detail">
+              <span class="trend-detail-item up">{{ formatCompact(usageOverview?.successfulRequests || 0) }} 成功</span>
+              <span class="trend-detail-item down">{{ formatCompact(usageOverview?.failedRequests || 0) }} 失败</span>
+            </span>
+          </div>
+
+          <div class="usage-footer">累计成功率 {{ formatPercent(usageOverview?.successRate || 0) }}</div>
+        </k-card>
+
         <k-card class="chatluna-usage-card success-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
@@ -22,13 +49,10 @@
             <div class="usage-value">{{ formatPercent(dayStats.successRate) }}</div>
             <span :class="['trend-badge', successTrend.tone]">
               <strong>{{ trendSymbol(successTrend.tone) }} {{ successTrend.text }}</strong>
-              <small>{{ successTrend.label }}</small>
             </span>
           </div>
 
-          <div class="progress-track">
-            <span class="progress-bar" :style="{ width: formatPercent(dayStats.successRate) }"></span>
-          </div>
+          <div class="usage-footer">{{ successMeta }}</div>
         </k-card>
 
         <k-card class="chatluna-usage-card token-card">
@@ -61,7 +85,6 @@
             <div class="usage-value token-value">{{ formatToken(tokenStats.totalTokens) }}</div>
             <span :class="['trend-badge', tokenTrend.tone]">
               <strong>{{ trendSymbol(tokenTrend.tone) }} {{ tokenTrend.text }}</strong>
-              <small>{{ tokenTrend.label }}</small>
             </span>
           </div>
 
@@ -83,7 +106,7 @@
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
-                <span class="tooltip-content">今日向 API 发起请求的总次数，包含成功 and 失败的请求</span>
+                <span class="tooltip-content">今日向 API 发起请求的总次数，包含成功和失败的请求</span>
               </span>
             </span>
           </div>
@@ -92,10 +115,12 @@
             <div class="usage-value">{{ formatCompact(dayStats.requests) }}</div>
             <span :class="['trend-badge', activityTrend.tone]">
               <strong>{{ trendSymbol(activityTrend.tone) }} {{ activityTrend.text }}</strong>
-              <small>{{ activityTrend.label }}</small>
             </span>
           </div>
+
+          <div class="usage-footer">{{ activityMeta }}</div>
         </k-card>
+
       </div>
     </section>
   </template>
@@ -131,6 +156,9 @@ const emptyUsageStats: ChatLunaUsageRangeStats = {
   successfulRequests: 0,
   failedRequests: 0,
   successRate: 0,
+  responseTimeSamples: 0,
+  totalResponseTime: 0,
+  averageResponseTime: 0,
   inputTokens: 0,
   outputTokens: 0,
   cachedTokens: 0,
@@ -165,8 +193,12 @@ const tokenTrend = computed(() => buildTrend(
   tokenRangeMeta.value.compareLabel,
 ))
 
+const successMeta = computed(() => {
+  return `昨日成功率 ${formatPercent(previousDayStats.value.successRate)}`
+})
+
 const activityMeta = computed(() => {
-  return `昨日 ${formatCompact(previousDayStats.value.requests)}`
+  return `昨日请求数 ${formatCompact(previousDayStats.value.requests)}`
 })
 
 function trimFixed(value: number, fraction = 1) {
@@ -194,7 +226,7 @@ function formatPercent(value: number) {
 function buildTrend(current: number, previous: number, label: string): TrendInfo {
   if (previous <= 0) {
     if (current <= 0) return { label, text: '0%', tone: 'flat' }
-    return { label, text: '新增', tone: 'up' }
+    return { label, text: '+100%', tone: 'up' }
   }
 
   const delta = (current - previous) / previous * 100
@@ -219,12 +251,14 @@ function trendSymbol(tone: TrendTone) {
 
 <style lang="scss" scoped>
 .usage-overview {
+  position: relative;
   margin: 0;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  z-index: 5;
 }
 
 .range-tabs {
@@ -258,9 +292,9 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .chatluna-usage-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
-  @media screen and (max-width: 1400px) {
+  @media screen and (max-width: 1600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -277,6 +311,7 @@ function trendSymbol(tone: TrendTone) {
   border-radius: 0.5rem;
   background: #fff;
   box-shadow: 0 0.75rem 1.8rem rgba(15, 23, 42, 0.06);
+  overflow: visible;
 
   :deep(.k-card-body) {
     position: relative;
@@ -285,6 +320,11 @@ function trendSymbol(tone: TrendTone) {
     margin: 0;
     padding: 1.1rem 1rem 0.9rem;
   }
+}
+
+.requests-card {
+  --usage-accent: #6366f1;
+  --usage-accent-soft: rgba(99, 102, 241, 0.08);
 }
 
 .success-card {
@@ -390,17 +430,6 @@ function trendSymbol(tone: TrendTone) {
   gap: 0.75rem;
 }
 
-.progress-track {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  bottom: 0.85rem;
-  height: 0.45rem;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(34, 197, 94, 0.16);
-}
-
 .info-tooltip-wrap {
   position: relative;
   display: inline-flex;
@@ -429,7 +458,7 @@ function trendSymbol(tone: TrendTone) {
 
 .tooltip-content {
   position: absolute;
-  bottom: 135%;
+  top: 135%;
   left: 50%;
   transform: translateX(-50%) translateY(4px);
   background: #1e293b;
@@ -439,31 +468,26 @@ function trendSymbol(tone: TrendTone) {
   font-size: 0.72rem;
   font-weight: 500;
   line-height: 1.4;
-  white-space: nowrap;
+  width: max-content;
+  max-width: min(28rem, calc(100vw - 2rem));
+  white-space: normal;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
-  z-index: 1000;
+  z-index: 9999;
   pointer-events: none;
 
   &::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     border-width: 5px;
     border-style: solid;
-    border-color: #1e293b transparent transparent transparent;
+    border-color: transparent transparent #1e293b transparent;
   }
-}
-
-.progress-bar {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.94), rgba(22, 163, 74, 0.94));
 }
 
 .trend-badge {
@@ -481,6 +505,7 @@ function trendSymbol(tone: TrendTone) {
   }
 
   small {
+    display: none;
     font-size: 0.68rem;
     color: #697386;
     font-weight: 700;
@@ -497,6 +522,29 @@ function trendSymbol(tone: TrendTone) {
 
 .trend-badge.flat {
   color: #64748b;
+}
+
+.trend-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  text-align: right;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  .trend-detail-item {
+    line-height: 1;
+  }
+
+  .trend-detail-item.up {
+    color: #16a34a;
+  }
+
+  .trend-detail-item.down {
+    color: #dc2626;
+  }
 }
 
 .token-breakdown {

@@ -1,6 +1,14 @@
 <template>
   <div class="dashboard-shell">
     <number-grid></number-grid>
+    <div class="featured-row">
+      <div class="featured-wide">
+        <ModelTrendChart></ModelTrendChart>
+      </div>
+      <div class="featured-narrow">
+        <ModelPerformancePanel></ModelPerformancePanel>
+      </div>
+    </div>
     <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
   </div>
 </template>
@@ -8,6 +16,8 @@
 <script lang="ts" setup>
 
 import NumberGrid from './numbers/index.vue'
+import { ModelTrendChart } from './charts/model-token'
+import { ModelPerformancePanel } from './charts/model-performance'
 
 </script>
 
@@ -24,19 +34,28 @@ import NumberGrid from './numbers/index.vue'
   gap: var(--card-margin);
 }
 
+.featured-row {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: var(--card-margin);
+
+  @media screen and (max-width: 1280px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.featured-wide {
+  min-width: 0;
+}
+
+.featured-narrow {
+  min-width: 0;
+}
+
 .chart-grid {
   .echarts {
     max-width: 100%;
     margin: 0 auto;
-  }
-
-  .model-token-chart {
-    grid-column: 1 / -1;
-  }
-
-  .model-token-chart .echarts {
-    width: 100%;
-    height: 470px;
   }
 
   @media (min-width: 1280px) {
@@ -50,21 +69,12 @@ import NumberGrid from './numbers/index.vue'
         margin: 0 auto;
       }
 
-      .model-token-chart .echarts {
-        width: 100%;
-        height: 470px;
-      }
     }
 
     @media (max-width: 1600px) {
       .echarts {
         width: 480px;
         height: 360px;
-      }
-
-      .model-token-chart .echarts {
-        width: 100%;
-        height: 460px;
       }
     }
   }
@@ -78,10 +88,6 @@ import NumberGrid from './numbers/index.vue'
         height: 400px;
       }
 
-      .model-token-chart .echarts {
-        width: 100%;
-        height: 430px;
-      }
     }
 
     @media (max-width: 768px) and (min-width: 480px) {
@@ -90,20 +96,12 @@ import NumberGrid from './numbers/index.vue'
         height: 400px;
       }
 
-      .model-token-chart .echarts {
-        width: 100%;
-        height: 320px;
-      }
     }
 
     @media (max-width: 480px) {
       .echarts {
         width: 100%;
         height: 300px;
-      }
-
-      .model-token-chart .echarts {
-        height: 280px;
       }
     }
   }

@@ -19,6 +19,7 @@ export interface MessageStats {
 }
 export interface ModelTokenUsage {
     model: string;
+    requests: number;
     inputTokens: number;
     outputTokens: number;
     cachedTokens: number;
@@ -29,11 +30,31 @@ export interface ModelTokenUsagePayload {
     week: ModelTokenUsage[];
     month: ModelTokenUsage[];
 }
+export interface ModelUsageTrendPoint {
+    date: number;
+    label: string;
+    requests: number;
+    totalTokens: number;
+}
+export interface ModelUsageTrendSeries {
+    model: string;
+    requests: number;
+    totalTokens: number;
+    points: ModelUsageTrendPoint[];
+}
+export interface ModelUsageTrendPayload {
+    threeDays: ModelUsageTrendSeries[];
+    week: ModelUsageTrendSeries[];
+    month: ModelUsageTrendSeries[];
+}
 export interface ChatLunaUsageRangeStats {
     requests: number;
     successfulRequests: number;
     failedRequests: number;
     successRate: number;
+    responseTimeSamples: number;
+    totalResponseTime: number;
+    averageResponseTime: number;
     inputTokens: number;
     outputTokens: number;
     cachedTokens: number;
@@ -43,6 +64,17 @@ export interface ChatLunaUsageRangePayload {
     day: ChatLunaUsageRangeStats;
     week: ChatLunaUsageRangeStats;
     month: ChatLunaUsageRangeStats;
+}
+export interface ModelPerformanceStats {
+    model: string;
+    requests: number;
+    avgTtftMs: number;
+    avgTps: number;
+}
+export interface ModelPerformancePayload {
+    day: ModelPerformanceStats[];
+    week: ModelPerformanceStats[];
+    month: ModelPerformanceStats[];
 }
 export interface ChatLunaUsageOverview {
     totalRequests: number;
@@ -81,6 +113,8 @@ declare class Analytics extends DataService<Analytics.Payload> {
     private getMessageHistoryByHour;
     private getChatLunaUsageOverview;
     private getChatLunaModelUsage;
+    private getChatLunaModelTrend;
+    private getChatLunaModelPerformance;
     download(): Promise<Analytics.Payload>;
     get(): Promise<Analytics.Payload>;
 }
@@ -117,6 +151,8 @@ declare namespace Analytics {
         messageByHour: MessageStats[];
         messageHistoryByHour: MessageStats[];
         chatlunaModelUsage: ModelTokenUsagePayload;
+        chatlunaModelTrend: ModelUsageTrendPayload;
+        chatlunaModelPerformance: ModelPerformancePayload;
         chatlunaUsageOverview: ChatLunaUsageOverview;
     }
     interface Config {

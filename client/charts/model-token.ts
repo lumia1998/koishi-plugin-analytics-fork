@@ -5,51 +5,89 @@ import { emptyChart, Tooltip } from './utils'
 
 const VChart = defineAsyncComponent(() => import('./echarts'))
 
-type Range = 'day' | 'week' | 'month'
+type DistributionRange = 'day' | 'week' | 'month'
+type TrendRange = 'week' | 'month'
 
 interface ModelTokenPoint {
   model: string
+  requests: number
   inputTokens: number
   outputTokens: number
   cachedTokens: number
   totalTokens: number
 }
 
-interface ModelTokenData {
-  name: string
-  inputTokens: number
-  outputTokens: number
-  cachedTokens: number
+interface ModelTrendPoint {
+  date: number
+  label: string
+  requests: number
   totalTokens: number
+}
+
+interface ModelTrendSeries {
+  model: string
+  requests: number
+  totalTokens: number
+  points: ModelTrendPoint[]
+}
+
+interface ModelTokenData extends ModelTokenPoint {
+  name: string
   color: string
+  distributionValue?: number
+}
+
+const distributionRangeLabel: Record<DistributionRange, string> = {
+  day: '日',
+  week: '周',
+  month: '月',
+}
+
+const trendRangeLabel: Record<TrendRange, string> = {
+  week: '周',
+  month: '月',
+}
+
+const modelColors = [
+  '#3b82f6',
+  '#10b981',
+  '#f59e0b',
+  '#ef4444',
+  '#8b5cf6',
+  '#06b6d4',
+  '#f97316',
+  '#ec4899',
+  '#64748b',
+  '#84cc16',
+]
+
+const otherModelColor = '#94a3b8'
+
+function trimFixed(value: number, fraction = 1) {
+  return value.toFixed(fraction).replace(/\.0$/, '')
+}
+
+function formatTokens(tokens: number) {
+  if (tokens >= 1000000000) return `${trimFixed(tokens / 1000000000, tokens < 10000000000 ? 1 : 0)}B`
+  if (tokens >= 1000000) return `${trimFixed(tokens / 1000000, tokens < 10000000 ? 1 : 0)}M`
+  if (tokens >= 1000) return `${trimFixed(tokens / 1000, tokens < 10000 ? 1 : 0)}K`
+  return `${Math.round(tokens)}`
+}
+
+function formatCompact(value: number) {
+  if (value >= 1000000000) return `${trimFixed(value / 1000000000)}B`
+  if (value >= 1000000) return `${trimFixed(value / 1000000)}M`
+  if (value >= 1000) return `${trimFixed(value / 1000)}K`
+  return `${Math.round(value)}`
+}
+
+function formatPercent(value: number) {
+  return `${trimFixed(value * 100, value < 0.1 ? 1 : 0)}%`
 }
 
 interface TokenScale {
   max: number
   interval: number
-}
-
-const rangeLabel: Record<Range, string> = {
-  day: '今日',
-  week: '近 7 日',
-  month: '近 30 日',
-}
-
-const modelColors = [
-  '#5470c6',
-  '#91cc75',
-  '#fac858',
-  '#ee6666',
-  '#73c0de',
-  '#3ba272',
-  '#fc8452',
-  '#9a60b4',
-  '#ea7ccc',
-  '#3b82f6',
-]
-
-function trimFixed(value: number, fraction = 1) {
-  return value.toFixed(fraction).replace(/\.0$/, '')
 }
 
 function getAxisScale(maxTokens: number): TokenScale {
@@ -65,71 +103,203 @@ function getAxisScale(maxTokens: number): TokenScale {
   return { max: axisMax, interval: axisMax / 4 }
 }
 
-function formatTokens(tokens: number) {
-  if (tokens >= 1000000000) return `${trimFixed(tokens / 1000000000, tokens < 10000000000 ? 1 : 0)}B`
-  if (tokens >= 1000000) return `${trimFixed(tokens / 1000000, tokens < 10000000 ? 1 : 0)}M`
-  if (tokens >= 1000) return `${trimFixed(tokens / 1000, tokens < 10000 ? 1 : 0)}K`
-  return `${Math.round(tokens)}`
-}
-
-function formatPercent(value: number) {
-  return `${trimFixed(value * 100, value < 0.1 ? 1 : 0)}%`
-}
-
-function createTokenData(range: Range): ModelTokenData[] {
+function createTokenData(range: DistributionRange): ModelTokenData[] {
   const usage = store.analytics?.chatlunaModelUsage?.[range] as ModelTokenPoint[] | undefined
   return (usage || [])
     .map((item, index) => ({
       name: item.model || '未知模型',
+      model: item.model || '未知模型',
+      requests: Math.max(0, item.requests || 0),
       inputTokens: Math.max(0, item.inputTokens || 0),
       outputTokens: Math.max(0, item.outputTokens || 0),
       cachedTokens: Math.max(0, item.cachedTokens || 0),
       totalTokens: Math.max(0, item.totalTokens || 0),
       color: modelColors[index % modelColors.length],
     }))
-    .filter(item => item.totalTokens > 0)
+    .filter(item => item.requests > 0 || item.totalTokens > 0)
 }
 
-const ModelTokenChart = defineComponent({
-  name: 'ModelTokenChart',
+function createDisplayTokenData(data: ModelTokenData[], byTokens: boolean) {
+  const sortedData = data
+    .slice()
+    .sort((left, right) => (byTokens ? right.totalTokens - left.totalTokens : right.requests - left.requests))
+    .map((item, index) => ({
+      ...item,
+      color: modelColors[index % modelColors.length],
+    }))
+
+  if (sortedData.length <= 5) return sortedData
+
+  const visible = sortedData.slice(0, 4)
+  const others = sortedData.slice(4)
+  const other = others.reduce<ModelTokenData>((result, item) => ({
+    ...result,
+    requests: result.requests + item.requests,
+    inputTokens: result.inputTokens + item.inputTokens,
+    outputTokens: result.outputTokens + item.outputTokens,
+    cachedTokens: result.cachedTokens + item.cachedTokens,
+    totalTokens: result.totalTokens + item.totalTokens,
+  }), {
+    name: '其他',
+    model: '其他',
+    requests: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    cachedTokens: 0,
+    totalTokens: 0,
+    color: otherModelColor,
+  })
+
+  return [...visible, other]
+}
+
+function createTrendData(range: TrendRange): ModelTrendSeries[] {
+  const usage = store.analytics?.chatlunaModelTrend?.[range] as ModelTrendSeries[] | undefined
+  return (usage || []).filter(item => item.points?.length)
+}
+
+function createTabs<T extends string>(labels: Record<T, string>, active: T, onSelect: (value: T) => void) {
+  return h('span', { class: 'model-range-tabs', role: 'tablist' }, (Object.keys(labels) as T[]).map(key => h('button', {
+    class: { active: active === key },
+    type: 'button',
+    onClick: () => onSelect(key),
+  }, [labels[key]])))
+}
+
+const ModelDistributionChart = defineComponent({
+  name: 'ModelDistributionChart',
 
   setup() {
-    const range = ref<Range>('day')
+    const range = ref<DistributionRange>('day')
 
     return () => {
       if (!store.analytics) return null
 
       const data = createTokenData(range.value)
       const totalTokens = data.reduce((sum, item) => sum + item.totalTokens, 0)
-      const maxTokens = Math.max(0, ...data.map(item => item.totalTokens))
+      const totalRequests = data.reduce((sum, item) => sum + item.requests, 0)
+      const distributionTotal = totalTokens || totalRequests
+      const displayData = createDisplayTokenData(data, totalTokens > 0)
+      const distributionData = displayData.map(item => ({
+        ...item,
+        distributionValue: totalTokens ? item.totalTokens : item.requests,
+      }))
+
+      const option: echarts.EChartsOption = distributionData.length ? {
+        color: distributionData.map(item => item.color),
+        tooltip: Tooltip.item<ModelTokenData>(({ data: point }) => [
+          point.name,
+          `请求：${formatCompact(point.requests)}`,
+          `Token：${formatTokens(point.totalTokens)}`,
+          `占比：${formatPercent((point.distributionValue ?? point.totalTokens) / distributionTotal)}`,
+        ].join('<br>')),
+        series: [{
+          name: '模型占比',
+          type: 'pie',
+          radius: ['54%', '78%'],
+          center: ['50%', '50%'],
+          minAngle: 1.5,
+          minShowLabelAngle: 4,
+          avoidLabelOverlap: true,
+          padAngle: 0.45,
+          selectedMode: false,
+          label: {
+            show: false,
+          },
+          itemStyle: {
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            borderRadius: 8,
+          },
+          emphasis: {
+            scale: false,
+          },
+          data: distributionData.map(item => ({
+            ...item,
+            value: item.distributionValue,
+            itemStyle: {
+              color: item.color,
+              borderColor: '#ffffff',
+              borderWidth: 2,
+              borderRadius: 8,
+            },
+          })),
+        }],
+      } : emptyChart()
+
+      const rows = distributionData.map((item) => h('div', { class: 'model-distribution-row', style: `--model-color: ${item.color}` }, [
+        h('div', { class: 'model-row-main' }, [
+          h('span', { class: 'model-name', title: item.name }, [item.name]),
+          h('span', { class: 'model-share' }, [formatPercent(item.distributionValue / distributionTotal)]),
+        ]),
+        h('div', { class: 'model-row-stats' }, [
+          h('span', { class: 'model-requests' }, [
+            h('strong', [formatCompact(item.requests)]),
+            h('small', ['请求']),
+          ]),
+          h('span', { class: 'model-tokens' }, [
+            h('strong', [formatTokens(item.totalTokens)]),
+            h('small', ['Token']),
+          ]),
+        ]),
+      ]))
+
+      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-distribution-card' }, {
+        header: () => [
+          h('span', { class: 'left' }, ['模型占比']),
+          createTabs(distributionRangeLabel, range.value, value => range.value = value),
+        ],
+        default: () => h('div', { class: 'model-distribution-body' }, [
+          h('div', { class: 'model-donut-wrap' }, [h(VChart, { option, autoresize: true })]),
+          h('div', { class: 'model-distribution-table' }, [
+            h('div', { class: 'model-table-rows' }, data.length ? rows : []),
+          ]),
+        ]),
+      })
+    }
+  },
+})
+
+export const ModelTrendChart = defineComponent({
+  name: 'ModelTrendChart',
+
+  setup() {
+    const range = ref<TrendRange>('week')
+
+    return () => {
+      if (!store.analytics) return null
+
+      const data = createTrendData(range.value)
+      const axisLabels = data[0]?.points.map(item => item.label) || []
+      const maxTokens = Math.max(0, ...data.flatMap(item => item.points.map(point => point.totalTokens)))
       const scale = getAxisScale(maxTokens)
 
       const option: echarts.EChartsOption = data.length ? {
-        color: data.map(item => item.color),
+        color: data.map((_, index) => modelColors[index % modelColors.length]),
         grid: {
           top: 28,
           left: 64,
-          right: 28,
-          bottom: 28,
+          right: 18,
+          bottom: 34,
         },
-        tooltip: Tooltip.axis<{ value: number; totalTokens: number; dataIndex: number }>((params) => {
-          const point = data[params[0]?.dataIndex ?? 0]
-          return [
-            point?.name ?? '',
-            `Token 总量：${formatTokens(point?.totalTokens ?? 0)}`,
-            `输入：${formatTokens(point?.inputTokens ?? 0)}`,
-            `输出：${formatTokens(point?.outputTokens ?? 0)}`,
-            `缓存：${formatTokens(point?.cachedTokens ?? 0)}`,
-          ].join('<br>')
+        tooltip: Tooltip.axis<number>((params) => {
+          const index = params[0]?.dataIndex ?? 0
+          const title = axisLabels[index] || ''
+          const rows = params.map((item) => {
+            const series = data[item.seriesIndex ?? 0]
+            const point = series?.points[index]
+            return `<span style="color:${item.color}">●</span> ${series?.model ?? item.seriesName}：${formatTokens(point?.totalTokens ?? 0)}`
+          })
+          return [`日期：${title}`, ...rows].join('<br>')
         }),
         xAxis: {
           type: 'category',
-          data: data.map(item => item.name),
+          data: axisLabels,
           axisTick: {
-            show: false,
+            alignWithLabel: true,
           },
           axisLabel: {
-            show: false,
+            color: '#6b7280',
           },
         },
         yAxis: {
@@ -138,64 +308,45 @@ const ModelTokenChart = defineComponent({
           max: scale.max,
           interval: scale.interval,
           axisLabel: {
+            color: '#5f6673',
             formatter: (value: number) => formatTokens(value),
           },
           splitLine: {
             lineStyle: {
               type: 'dashed',
-              color: 'rgba(148, 163, 184, 0.28)',
+              color: 'rgba(120, 113, 108, 0.25)',
             },
           },
         },
-        series: [{
-          name: 'Token 总量',
+        series: data.map((item, index) => ({
+          name: item.model,
           type: 'bar',
           barMaxWidth: 42,
-          data: data.map(item => ({
-            value: item.totalTokens,
-            totalTokens: item.totalTokens,
-            inputTokens: item.inputTokens,
-            outputTokens: item.outputTokens,
-            cachedTokens: item.cachedTokens,
-            itemStyle: {
-              color: item.color,
-              borderRadius: [5, 5, 0, 0],
-            },
-          })),
+          barGap: '30%',
+          emphasis: {
+            focus: 'series',
+          },
+          itemStyle: {
+            color: modelColors[index % modelColors.length],
+            borderRadius: [5, 5, 0, 0],
+          },
           label: {
             show: true,
             position: 'top',
             color: '#64748b',
-            formatter: ({ data }: any) => formatTokens(data.totalTokens),
+            fontSize: 11,
+            formatter: ({ data: value }: { data: number }) => formatTokens(value),
           },
-        }],
+          data: item.points.map(point => point.totalTokens),
+        })),
       } : emptyChart()
 
-      const legend = data.map((item, index) => h('div', {
-        class: 'model-token-legend-item',
-        style: `--model-color: ${item.color}`,
-      }, [
-        h('span', { class: 'legend-rank' }, [`#${index + 1}`]),
-        h('span', { class: 'legend-dot' }),
-        h('span', { class: 'legend-main' }, [
-          h('span', { class: 'legend-name', title: item.name }, [item.name]),
-          h('span', { class: 'legend-share' }, [`${formatPercent(item.totalTokens / totalTokens)} 占比`]),
-        ]),
-        h('span', { class: 'legend-value' }, [formatTokens(item.totalTokens)]),
-      ]))
-
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-token-chart' }, {
+      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-trend-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型用量']),
-          h('span', { class: 'right' }, (Object.keys(rangeLabel) as Range[]).map(key => h('span', {
-            class: 'tab-item' + (range.value === key ? ' active' : ''),
-            onClick: () => range.value = key,
-          }, [rangeLabel[key]]))),
+          createTabs(trendRangeLabel, range.value, value => range.value = value),
         ],
-        default: () => h('div', { class: 'model-token-body' + (data.length ? ' has-legend' : ' is-empty') }, [
-          h('div', { class: 'model-token-plot' }, [h(VChart, { option, autoresize: true })]),
-          ...data.length ? [h('div', { class: 'model-token-legend' }, legend)] : [],
-        ]),
+        default: () => h('div', { class: 'model-trend-body' }, [h(VChart, { option, autoresize: true })]),
       })
     }
   },
@@ -204,7 +355,7 @@ const ModelTokenChart = defineComponent({
 export default (ctx: Context) => {
   ctx.slot({
     type: 'analytic-chart',
-    component: ModelTokenChart,
+    component: ModelDistributionChart,
     order: 1,
   })
 }
