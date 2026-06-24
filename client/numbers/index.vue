@@ -307,7 +307,7 @@ function trendSymbol(tone: TrendTone) {
 .chatluna-usage-card {
   --usage-accent: #2563eb;
   --usage-accent-soft: rgba(37, 99, 235, 0.08);
-  height: 150px;
+  height: 200px;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background: #fff;
