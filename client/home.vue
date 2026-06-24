@@ -9,6 +9,7 @@
         <ModelPerformancePanel></ModelPerformancePanel>
       </div>
     </div>
+    <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
   </div>
 </template>
 
@@ -22,16 +23,15 @@ import { ModelPerformancePanel } from './charts/model-performance'
 
 <style lang="scss">
 
+.card-grid {
+  display: grid;
+  grid-gap: var(--card-margin);
+}
+
 .dashboard-shell {
   margin: var(--card-margin);
   display: grid;
   gap: var(--card-margin);
-}
-
-.tab-content {
-  display: grid;
-  gap: var(--card-margin);
-  padding-top: var(--card-margin);
 }
 
 .featured-row {
@@ -84,7 +84,6 @@ import { ModelPerformancePanel } from './charts/model-performance'
         max-width: 100%;
         margin: 0 auto;
       }
-
     }
 
     @media (max-width: 1600px) {
@@ -103,7 +102,6 @@ import { ModelPerformancePanel } from './charts/model-performance'
         width: 800px;
         height: 400px;
       }
-
     }
 
     @media (max-width: 768px) and (min-width: 480px) {
@@ -111,7 +109,6 @@ import { ModelPerformancePanel } from './charts/model-performance'
         width: 600px;
         height: 400px;
       }
-
     }
 
     @media (max-width: 480px) {
