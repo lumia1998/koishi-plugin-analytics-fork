@@ -46,6 +46,7 @@ export interface ModelUsageTrendPayload {
     threeDays: ModelUsageTrendSeries[];
     week: ModelUsageTrendSeries[];
     month: ModelUsageTrendSeries[];
+    all: ModelUsageTrendSeries[];
 }
 export interface ChatLunaUsageRangeStats {
     requests: number;

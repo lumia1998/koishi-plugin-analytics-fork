@@ -38,18 +38,22 @@ import { ModelPerformancePanel } from './charts/model-performance'
   display: grid;
   grid-template-columns: 3fr 1fr;
   gap: var(--card-margin);
+  align-items: stretch;
 
   @media screen and (max-width: 1280px) {
     grid-template-columns: 1fr;
   }
 }
 
-.featured-wide {
-  min-width: 0;
-}
-
+.featured-wide,
 .featured-narrow {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  > * {
+    flex: 1;
+  }
 }
 
 .chart-grid {
@@ -107,8 +111,10 @@ import { ModelPerformancePanel } from './charts/model-performance'
   }
 }
 
-.page-home .welcome {
-  display: none;
+.page-home .welcome,
+.page-home > .k-content > .welcome,
+.welcome {
+  display: none !important;
 }
 
 </style>

@@ -55,6 +55,7 @@ export interface ModelUsageTrendPayload {
   threeDays: ModelUsageTrendSeries[]
   week: ModelUsageTrendSeries[]
   month: ModelUsageTrendSeries[]
+  all: ModelUsageTrendSeries[]
 }
 
 export interface ChatLunaUsageRangeStats {
@@ -723,11 +724,14 @@ class Analytics extends DataService<Analytics.Payload> {
     const earliestStart = Time.fromDateNumber(Math.min(...Object.values(ranges)))
 
     try {
-      const rows = await this.ctx.database.get('chatluna_usage' as any, {
-        createdAt: { $gte: earliestStart, $lt: end },
-      }) as ChatLunaUsageRecord[]
+      const [recentRows, allRows] = await Promise.all([
+        this.ctx.database.get('chatluna_usage' as any, {
+          createdAt: { $gte: earliestStart, $lt: end },
+        }) as Promise<ChatLunaUsageRecord[]>,
+        this.ctx.database.get('chatluna_usage' as any, {}) as Promise<ChatLunaUsageRecord[]>,
+      ])
 
-      const collect = (startDate: number): ModelUsageTrendSeries[] => {
+      const buildSeries = (rows: ChatLunaUsageRecord[], startDate: number): ModelUsageTrendSeries[] => {
         const dates: number[] = []
         for (let date = startDate; date <= today; date++) dates.push(date)
 
@@ -774,35 +778,33 @@ class Analytics extends DataService<Analytics.Payload> {
                 stats.totalTokens += item.totalTokens
                 return stats
               }, createEmptyModelUsageStats())
-              return {
-                date,
-                label: formatTrendDateLabel(date),
-                requests: hiddenStats.requests,
-                totalTokens: hiddenStats.totalTokens,
-              }
+              return { date, label: formatTrendDateLabel(date), requests: hiddenStats.requests, totalTokens: hiddenStats.totalTokens }
             }
 
             const stats = modelDateTotals?.get(date)
-            return {
-              date,
-              label: formatTrendDateLabel(date),
-              requests: stats?.requests ?? 0,
-              totalTokens: stats?.totalTokens ?? 0,
-            }
+            return { date, label: formatTrendDateLabel(date), requests: stats?.requests ?? 0, totalTokens: stats?.totalTokens ?? 0 }
           })
 
           return { model, requests, totalTokens, points }
         })
       }
 
+      // for "all", compute startDate from earliest record
+      let allStartDate = today
+      for (const row of allRows) {
+        const d = Time.getDateNumber(new Date(row.createdAt))
+        if (d < allStartDate) allStartDate = d
+      }
+
       return {
-        threeDays: collect(ranges.threeDays),
-        week: collect(ranges.week),
-        month: collect(ranges.month),
+        threeDays: buildSeries(recentRows, ranges.threeDays),
+        week: buildSeries(recentRows, ranges.week),
+        month: buildSeries(recentRows, ranges.month),
+        all: buildSeries(allRows, allStartDate),
       }
     } catch (error) {
       logger.debug(error)
-      return { threeDays: [], week: [], month: [] }
+      return { threeDays: [], week: [], month: [], all: [] }
     }
   }
 

@@ -11,14 +11,25 @@ const rangeLabel: Record<Range, string> = {
 }
 
 function formatMs(ms: number) {
+  if (ms <= 0) return '—'
+  if (ms >= 60000) return `${(ms / 60000).toFixed(1)}min`
   if (ms >= 10000) return `${(ms / 1000).toFixed(1)}s`
   if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`
   return `${ms}ms`
 }
 
 function formatTps(tps: number) {
-  if (tps >= 100) return `${Math.round(tps)}`
-  return `${tps.toFixed(1)}`
+  if (tps <= 0) return '—'
+  if (tps >= 100) return `${Math.round(tps)} tok/s`
+  return `${tps.toFixed(1)} tok/s`
+}
+
+// TPS speed indicator color
+function tpsColor(tps: number): string {
+  if (tps <= 0) return '#94a3b8'
+  if (tps >= 100) return '#16a34a'
+  if (tps >= 30) return '#f59e0b'
+  return '#ef4444'
 }
 
 const modelColors = [
@@ -44,33 +55,6 @@ export const ModelPerformancePanel = defineComponent({
       const perf = (store.analytics?.chatlunaModelPerformance?.[range.value] || []) as ModelPerformanceStats[]
       if (!perf.length) return null
 
-      const maxTtft = Math.max(...perf.map(item => item.avgTtftMs), 1)
-      const maxTps = Math.max(...perf.map(item => item.avgTps), 1)
-
-      const createBar = (value: number, max: number, color: string, label: string) => {
-        const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
-        return h('div', { class: 'perf-bar-row' }, [
-          h('div', { class: 'perf-model-label', title: label }, [label]),
-          h('div', { class: 'perf-bar-track' }, [
-            h('div', {
-              class: 'perf-bar-fill',
-              style: {
-                width: `${pct}%`,
-                background: color,
-              },
-            }),
-          ]),
-          h('span', { class: 'perf-bar-value' }, [value > 0 ? (label === 'TTFT' ? formatMs(value) : formatTps(value)) : '—']),
-        ])
-      }
-
-      const ttftBars = perf.map((item, i) =>
-        createBar(item.avgTtftMs, maxTtft, modelColors[i % modelColors.length], item.model),
-      )
-      const tpsBars = perf.map((item, i) =>
-        createBar(item.avgTps, maxTps, modelColors[i % modelColors.length], item.model),
-      )
-
       const tabs = (Object.keys(rangeLabel) as Range[]).map(key =>
         h('button', {
           class: { active: range.value === key },
@@ -79,21 +63,31 @@ export const ModelPerformancePanel = defineComponent({
         }, [rangeLabel[key]]),
       )
 
+      const rows = perf.map((item, i) => {
+        const color = modelColors[i % modelColors.length]
+        const dotColor = tpsColor(item.avgTps)
+        return h('div', { class: 'perf-row' }, [
+          h('div', { class: 'perf-row-header' }, [
+            h('span', {
+              class: 'perf-dot',
+              style: { background: dotColor, boxShadow: `0 0 0 3px ${dotColor}22` },
+            }),
+            h('span', { class: 'perf-model-name', title: item.model, style: { color } }, [item.model]),
+          ]),
+          h('div', { class: 'perf-row-metrics' }, [
+            h('span', { class: 'perf-tps' }, [formatTps(item.avgTps)]),
+            h('span', { class: 'perf-sep' }, ['·']),
+            h('span', { class: 'perf-ttft' }, [formatMs(item.avgTtftMs)]),
+          ]),
+        ])
+      })
+
       return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-perf-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型性能']),
-          h('span', { class: 'range-tabs', role: 'tablist' }, tabs),
+          h('span', { class: 'model-range-tabs', role: 'tablist' }, tabs),
         ],
-        default: () => h('div', { class: 'perf-panel' }, [
-          h('div', { class: 'perf-section' }, [
-            h('div', { class: 'perf-heading' }, ['首字延迟 TTFT']),
-            ...ttftBars,
-          ]),
-          h('div', { class: 'perf-section' }, [
-            h('div', { class: 'perf-heading' }, ['输出速度 TPS']),
-            ...tpsBars,
-          ]),
-        ]),
+        default: () => h('div', { class: 'perf-list' }, rows),
       })
     }
   },

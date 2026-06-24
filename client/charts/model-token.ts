@@ -6,7 +6,7 @@ import { emptyChart, Tooltip } from './utils'
 const VChart = defineAsyncComponent(() => import('./echarts'))
 
 type DistributionRange = 'day' | 'week' | 'month'
-type TrendRange = 'week' | 'month'
+type TrendRange = 'week' | 'month' | 'all'
 
 interface ModelTokenPoint {
   model: string
@@ -46,6 +46,7 @@ const distributionRangeLabel: Record<DistributionRange, string> = {
 const trendRangeLabel: Record<TrendRange, string> = {
   week: '周',
   month: '月',
+  all: '全部',
 }
 
 const modelColors = [
@@ -154,7 +155,7 @@ function createDisplayTokenData(data: ModelTokenData[], byTokens: boolean) {
 }
 
 function createTrendData(range: TrendRange): ModelTrendSeries[] {
-  const usage = store.analytics?.chatlunaModelTrend?.[range] as ModelTrendSeries[] | undefined
+  const usage = (store.analytics?.chatlunaModelTrend as any)?.[range] as ModelTrendSeries[] | undefined
   return (usage || []).filter(item => item.points?.length)
 }
 
@@ -271,16 +272,24 @@ export const ModelTrendChart = defineComponent({
 
       const data = createTrendData(range.value)
       const axisLabels = data[0]?.points.map(item => item.label) || []
-      const maxTokens = Math.max(0, ...data.flatMap(item => item.points.map(point => point.totalTokens)))
-      const scale = getAxisScale(maxTokens)
+      const maxTotal = Math.max(0, ...axisLabels.map((_, i) =>
+        data.reduce((sum, s) => sum + (s.points[i]?.totalTokens ?? 0), 0),
+      ))
+      const scale = getAxisScale(maxTotal)
 
       const option: echarts.EChartsOption = data.length ? {
         color: data.map((_, index) => modelColors[index % modelColors.length]),
-        grid: {
-          top: 28,
-          left: 64,
-          right: 18,
-          bottom: 34,
+        grid: { top: 28, left: 64, right: 18, bottom: 52 },
+        legend: {
+          bottom: 0,
+          left: 'center',
+          itemWidth: 10,
+          itemHeight: 10,
+          textStyle: { color: '#6b7280', fontSize: 11 },
+          data: data.map((item, index) => ({
+            name: item.model,
+            itemStyle: { color: modelColors[index % modelColors.length] },
+          })),
         },
         tooltip: Tooltip.axis<number>((params) => {
           const index = params[0]?.dataIndex ?? 0
@@ -290,16 +299,16 @@ export const ModelTrendChart = defineComponent({
             const point = series?.points[index]
             return `<span style="color:${item.color}">●</span> ${series?.model ?? item.seriesName}：${formatTokens(point?.totalTokens ?? 0)}`
           })
-          return [`日期：${title}`, ...rows].join('<br>')
+          const total = data.reduce((sum, s) => sum + (s.points[index]?.totalTokens ?? 0), 0)
+          return [`日期：${title}`, ...rows, `合计：${formatTokens(total)}`].join('<br>')
         }),
         xAxis: {
           type: 'category',
           data: axisLabels,
-          axisTick: {
-            alignWithLabel: true,
-          },
+          axisTick: { alignWithLabel: true },
           axisLabel: {
             color: '#6b7280',
+            interval: axisLabels.length > 14 ? Math.floor(axisLabels.length / 10) : 0,
           },
         },
         yAxis: {
@@ -307,35 +316,18 @@ export const ModelTrendChart = defineComponent({
           min: 0,
           max: scale.max,
           interval: scale.interval,
-          axisLabel: {
-            color: '#5f6673',
-            formatter: (value: number) => formatTokens(value),
-          },
-          splitLine: {
-            lineStyle: {
-              type: 'dashed',
-              color: 'rgba(120, 113, 108, 0.25)',
-            },
-          },
+          axisLabel: { color: '#5f6673', formatter: (value: number) => formatTokens(value) },
+          splitLine: { lineStyle: { type: 'dashed', color: 'rgba(120, 113, 108, 0.25)' } },
         },
         series: data.map((item, index) => ({
           name: item.model,
           type: 'bar',
-          barMaxWidth: 42,
-          barGap: '30%',
-          emphasis: {
-            focus: 'series',
-          },
+          stack: 'tokens',
+          barMaxWidth: 48,
+          emphasis: { focus: 'series' },
           itemStyle: {
             color: modelColors[index % modelColors.length],
-            borderRadius: [5, 5, 0, 0],
-          },
-          label: {
-            show: true,
-            position: 'top',
-            color: '#64748b',
-            fontSize: 11,
-            formatter: ({ data: value }: { data: number }) => formatTokens(value),
+            borderRadius: index === data.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0],
           },
           data: item.points.map(point => point.totalTokens),
         })),

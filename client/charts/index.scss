@@ -195,6 +195,8 @@
 
 .model-trend-card {
   order: -2;
+  height: 100%;
+  box-sizing: border-box;
 
   .model-trend-body {
     height: 360px;
@@ -209,100 +211,88 @@
 }
 
 .model-perf-card {
+  height: 100%;
+  box-sizing: border-box;
+
   .k-card-body {
     margin-block: 0.9rem 0.85rem;
-  }
-
-  .perf-panel {
+    height: calc(100% - 3rem);
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    padding: 0.35rem 0.8rem 0.5rem;
-    min-height: 360px;
   }
 
-  .perf-section {
+  .perf-list {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    padding: 0.2rem 0.6rem 0.3rem;
+    overflow: hidden;
+    flex: 1;
   }
 
-  .perf-heading {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #697386;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.15rem;
+  .perf-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0.5rem;
+    border-radius: 0.45rem;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.04);
+    }
+
+    & + .perf-row {
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
   }
 
-  .perf-bar-row {
-    display: grid;
-    grid-template-columns: 7rem 1fr 3.5rem;
+  .perf-row-header {
+    display: flex;
     align-items: center;
     gap: 0.5rem;
-    min-height: 1.35rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
   }
 
-  .perf-model-label {
-    font-size: 0.72rem;
+  .perf-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+
+  .perf-model-name {
+    font-size: 0.8rem;
     font-weight: 600;
-    color: #4b5563;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: right;
   }
 
-  .perf-bar-track {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .perf-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    min-width: 2px;
-    transition: width 0.35s ease;
-  }
-
-  .perf-bar-value {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #111827;
+  .perf-row-metrics {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
     white-space: nowrap;
-    text-align: right;
+    flex: 0 0 auto;
   }
 
-  .range-tabs {
-    padding: 0.1rem;
-    display: inline-flex;
-    gap: 0.06rem;
-    border-radius: 999px;
-    background: #eef2f7;
-    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+  .perf-tps {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #111827;
+  }
 
-    button {
-      border: 0;
-      border-radius: 999px;
-      min-width: 2.35rem;
-      height: 1.45rem;
-      padding: 0 0.58rem;
-      background: transparent;
-      color: #5f6673;
-      font: inherit;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-    }
+  .perf-sep {
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
 
-    button.active {
-      color: #fff;
-      background: #2f7df7;
-      box-shadow: 0 0.35rem 0.8rem rgba(47, 125, 247, 0.24);
-    }
+  .perf-ttft {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #697386;
   }
 }
