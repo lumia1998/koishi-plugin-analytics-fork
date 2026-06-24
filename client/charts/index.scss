@@ -32,6 +32,8 @@
     .echarts {
       flex: 1;
       min-height: 0;
+      width: 100% !important;
+      height: 360px !important;
     }
   }
 }
