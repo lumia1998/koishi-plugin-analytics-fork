@@ -1,15 +1,25 @@
 <template>
   <div class="dashboard-shell">
-    <number-grid></number-grid>
-    <div class="featured-row">
-      <div class="featured-wide">
-        <ModelTrendChart></ModelTrendChart>
-      </div>
-      <div class="featured-narrow">
-        <ModelPerformancePanel></ModelPerformancePanel>
-      </div>
-    </div>
-    <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
+    <k-tab>
+      <k-tab-item value="chatluna" label="ChatLuna">
+        <div class="tab-content">
+          <number-grid></number-grid>
+          <div class="featured-row">
+            <div class="featured-wide">
+              <ModelTrendChart></ModelTrendChart>
+            </div>
+            <div class="featured-narrow">
+              <ModelPerformancePanel></ModelPerformancePanel>
+            </div>
+          </div>
+        </div>
+      </k-tab-item>
+      <k-tab-item value="koishi" label="Koishi">
+        <div class="tab-content">
+          <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
+        </div>
+      </k-tab-item>
+    </k-tab>
   </div>
 </template>
 
@@ -32,6 +42,12 @@ import { ModelPerformancePanel } from './charts/model-performance'
   margin: var(--card-margin);
   display: grid;
   gap: var(--card-margin);
+}
+
+.tab-content {
+  display: grid;
+  gap: var(--card-margin);
+  padding-top: var(--card-margin);
 }
 
 .featured-row {
