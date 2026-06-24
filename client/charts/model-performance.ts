@@ -82,7 +82,7 @@ export const ModelPerformancePanel = defineComponent({
         ])
       })
 
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-perf-card' }, {
+      return h(resolveComponent('k-card'), { class: 'analytic-chart model-perf-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型性能']),
           h('span', { class: 'model-range-tabs', role: 'tablist' }, tabs),

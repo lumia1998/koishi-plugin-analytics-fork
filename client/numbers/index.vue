@@ -2,8 +2,7 @@
   <template v-if="store.analytics">
     <section class="usage-overview">
       <div class="card-grid chatluna-usage-grid">
-        <div class="usage-cards-group">
-          <k-card class="chatluna-usage-card analytics-requests-card">
+        <k-card class="chatluna-usage-card analytics-requests-card">
             <div class="usage-card-header">
               <span class="usage-card-heading">
                 <span class="icon-wrap"><k-icon name="analytic:request" /></span>
@@ -91,7 +90,6 @@
               <span>缓存 {{ formatToken(tokenStats.cachedTokens) }}</span>
             </div>
           </k-card>
-        </div>
 
         <k-card class="chatluna-usage-card analytics-activity-card">
           <div class="usage-card-header">
@@ -290,14 +288,8 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .chatluna-usage-grid {
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
-
-  .usage-cards-group {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--card-margin);
-  }
 
   @media screen and (max-width: 1600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));

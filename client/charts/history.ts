@@ -120,7 +120,7 @@ const HistoryMessageChart = defineComponent({
         }],
       }
 
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart' }, {
+      return h(resolveComponent('k-card'), { class: 'analytic-chart' }, {
         header: () => [
           h('span', { class: 'left' }, ['历史消息数量']),
           h('span', { class: 'right' }, [

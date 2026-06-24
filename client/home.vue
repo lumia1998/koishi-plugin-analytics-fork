@@ -36,7 +36,7 @@ import { ModelPerformancePanel } from './charts/model-performance'
 
 .featured-row {
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--card-margin);
   align-items: stretch;
 
@@ -46,8 +46,19 @@ import { ModelPerformancePanel } from './charts/model-performance'
   }
 }
 
-.featured-wide,
+.featured-wide {
+  grid-column: 1 / 4;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  > * {
+    flex: 1;
+  }
+}
+
 .featured-narrow {
+  grid-column: 4;
   min-width: 0;
   display: flex;
   flex-direction: column;

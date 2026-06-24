@@ -35,7 +35,7 @@ export function createChart({ title, fields, showTab, options }: ChartOptions) {
       if (!fields.every(key => store[key])) return null
       const option = options(store, tabValue.value)
       if (!option) return
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart' }, {
+      return h(resolveComponent('k-card'), { class: 'analytic-chart' }, {
         header: () => [
           h('span', { class: 'left' }, [title]),
           ...showTab ? [h('span', { class: 'right' }, [

@@ -173,7 +173,7 @@ export const ModelTrendChart = defineComponent({
         })),
       } : emptyChart()
 
-      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-trend-card' }, {
+      return h(resolveComponent('k-card'), { class: 'analytic-chart model-trend-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型用量']),
           createTabs(trendRangeLabel, range.value, value => range.value = value),
