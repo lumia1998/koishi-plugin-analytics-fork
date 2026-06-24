@@ -329,21 +329,25 @@ function trendSymbol(tone: TrendTone) {
 .requests-card {
   --usage-accent: #6366f1;
   --usage-accent-soft: rgba(99, 102, 241, 0.08);
+  height: 200px !important;
 }
 
 .success-card {
   --usage-accent: #16a34a;
   --usage-accent-soft: rgba(22, 163, 74, 0.08);
+  height: 200px !important;
 }
 
 .activity-card {
   --usage-accent: #8b5cf6;
   --usage-accent-soft: rgba(139, 92, 246, 0.12);
+  height: 200px !important;
 }
 
 .token-card {
   --usage-accent: #2f7df7;
   --usage-accent-soft: rgba(47, 125, 247, 0.12);
+  height: 200px !important;
 }
 
 .usage-card-header {
