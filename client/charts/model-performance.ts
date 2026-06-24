@@ -77,7 +77,7 @@ export const ModelPerformancePanel = defineComponent({
           h('div', { class: 'perf-row-metrics' }, [
             h('span', { class: 'perf-tps' }, [formatTps(item.avgTps)]),
             h('span', { class: 'perf-sep' }, ['·']),
-            h('span', { class: 'perf-ttft' }, [formatMs(item.avgTtftMs)]),
+            h('span', { class: 'perf-ttft' }, ['TTFT ', formatMs(item.avgTtftMs)]),
           ]),
         ])
       })

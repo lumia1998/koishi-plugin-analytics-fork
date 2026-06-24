@@ -2,7 +2,7 @@
   <template v-if="store.analytics">
     <section class="usage-overview">
       <div class="card-grid chatluna-usage-grid">
-        <k-card class="chatluna-usage-card requests-card">
+        <k-card class="chatluna-usage-card analytics-requests-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:request" /></span>
@@ -29,7 +29,7 @@
           <div class="usage-footer">累计成功率 {{ formatPercent(usageOverview?.successRate || 0) }}</div>
         </k-card>
 
-        <k-card class="chatluna-usage-card success-card">
+        <k-card class="chatluna-usage-card analytics-success-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
@@ -55,7 +55,7 @@
           <div class="usage-footer">{{ successMeta }}</div>
         </k-card>
 
-        <k-card class="chatluna-usage-card token-card">
+        <k-card class="chatluna-usage-card analytics-token-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:token" /></span>
@@ -95,7 +95,7 @@
           </div>
         </k-card>
 
-        <k-card class="chatluna-usage-card activity-card">
+        <k-card class="chatluna-usage-card analytics-activity-card">
           <div class="usage-card-header">
             <span class="usage-card-heading">
               <span class="icon-wrap"><k-icon name="analytic:pulse" /></span>
@@ -326,25 +326,25 @@ function trendSymbol(tone: TrendTone) {
   }
 }
 
-.requests-card {
+.analytics-requests-card {
   --usage-accent: #6366f1;
   --usage-accent-soft: rgba(99, 102, 241, 0.08);
   height: 200px !important;
 }
 
-.success-card {
+.analytics-success-card {
   --usage-accent: #16a34a;
   --usage-accent-soft: rgba(22, 163, 74, 0.08);
   height: 200px !important;
 }
 
-.activity-card {
+.analytics-activity-card {
   --usage-accent: #8b5cf6;
   --usage-accent-soft: rgba(139, 92, 246, 0.12);
   height: 200px !important;
 }
 
-.token-card {
+.analytics-token-card {
   --usage-accent: #2f7df7;
   --usage-accent-soft: rgba(47, 125, 247, 0.12);
   height: 200px !important;

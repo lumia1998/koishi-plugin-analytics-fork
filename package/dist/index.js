@@ -1,0 +1,1 @@
+import{defineAsyncComponent as r}from"vue";import{store as a}from"@koishijs/client";const s=e=>{e.slot({type:"home",component:r(async()=>{const[o,t]=await Promise.all([import("./home-C5OBnxKB.js"),import("./index-DhHiw_Yh.js")]);return e.plugin(t.default),o.default}),order:-1e3,disabled:()=>!a.chatluna_usage})};export{s as default};
