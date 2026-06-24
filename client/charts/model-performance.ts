@@ -52,8 +52,9 @@ export const ModelPerformancePanel = defineComponent({
     const range = ref<Range>('day')
 
     return () => {
+      if (!store.analytics) return null
+
       const perf = (store.analytics?.chatlunaModelPerformance?.[range.value] || []) as ModelPerformanceStats[]
-      if (!perf.length) return null
 
       const tabs = (Object.keys(rangeLabel) as Range[]).map(key =>
         h('button', {
@@ -63,7 +64,7 @@ export const ModelPerformancePanel = defineComponent({
         }, [rangeLabel[key]]),
       )
 
-      const rows = perf.map((item, i) => {
+      const rows = perf.length ? perf.map((item, i) => {
         const color = modelColors[i % modelColors.length]
         const dotColor = tpsColor(item.avgTps)
         return h('div', { class: 'perf-row' }, [
@@ -80,9 +81,9 @@ export const ModelPerformancePanel = defineComponent({
             h('span', { class: 'perf-ttft' }, ['TTFT ', formatMs(item.avgTtftMs)]),
           ]),
         ])
-      })
+      }) : [h('div', { class: 'perf-empty' }, ['暂无数据'])]
 
-      return h(resolveComponent('k-card'), { class: 'analytic-chart model-perf-card' }, {
+      return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-perf-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型性能']),
           h('span', { class: 'model-range-tabs', role: 'tablist' }, tabs),
