@@ -279,13 +279,17 @@ export const ModelTrendChart = defineComponent({
 
       const option: echarts.EChartsOption = data.length ? {
         color: data.map((_, index) => modelColors[index % modelColors.length]),
-        grid: { top: 28, left: 64, right: 18, bottom: 52 },
+        grid: { top: 24, left: 60, right: 18, bottom: 56 },
         legend: {
-          bottom: 0,
+          type: 'scroll',
+          bottom: 4,
           left: 'center',
-          itemWidth: 10,
-          itemHeight: 10,
-          textStyle: { color: '#6b7280', fontSize: 11 },
+          icon: 'circle',
+          itemWidth: 9,
+          itemHeight: 9,
+          itemGap: 16,
+          padding: [4, 8],
+          textStyle: { color: '#6b7280', fontSize: 12 },
           data: data.map((item, index) => ({
             name: item.model,
             itemStyle: { color: modelColors[index % modelColors.length] },

@@ -293,6 +293,7 @@ function trendSymbol(tone: TrendTone) {
 
 .chatluna-usage-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
 
   @media screen and (max-width: 1600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -306,20 +307,20 @@ function trendSymbol(tone: TrendTone) {
 .chatluna-usage-card {
   --usage-accent: #2563eb;
   --usage-accent-soft: rgba(37, 99, 235, 0.08);
-  min-height: 150px;
-  max-height: 150px;
+  height: 150px;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background: #fff;
   box-shadow: 0 0.75rem 1.8rem rgba(15, 23, 42, 0.06);
   overflow: visible;
+  display: flex;
+  flex-direction: column;
 
   :deep(.k-card-body) {
     position: relative;
     box-sizing: border-box;
-    min-height: 150px;
-    max-height: 150px;
-    height: 150px;
+    flex: 1;
+    height: auto;
     margin: 0;
     padding: 1.1rem 1rem 0.9rem;
   }
