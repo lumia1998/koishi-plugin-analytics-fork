@@ -2,98 +2,96 @@
   <template v-if="store.analytics">
     <section class="usage-overview">
       <div class="card-grid chatluna-usage-grid">
-        <k-card class="chatluna-usage-card analytics-requests-card">
-          <div class="usage-card-header">
-            <span class="usage-card-heading">
-              <span class="icon-wrap"><k-icon name="analytic:request" /></span>
-              <span class="usage-title">总请求</span>
-              <span class="info-tooltip-wrap">
-                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span class="tooltip-content">自插件启用以来向 API 发起请求的总次数</span>
+        <div class="usage-cards-group">
+          <k-card class="chatluna-usage-card analytics-requests-card">
+            <div class="usage-card-header">
+              <span class="usage-card-heading">
+                <span class="icon-wrap"><k-icon name="analytic:request" /></span>
+                <span class="usage-title">总请求</span>
+                <span class="info-tooltip-wrap">
+                  <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span class="tooltip-content">自插件启用以来向 API 发起请求的总次数</span>
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
 
-          <div class="metric-row">
-            <div class="usage-value">{{ formatCompact(usageOverview?.totalRequests || 0) }}</div>
-            <span class="trend-detail">
-              <span class="trend-detail-item up">{{ formatCompact(usageOverview?.successfulRequests || 0) }} 成功</span>
-              <span class="trend-detail-item down">{{ formatCompact(usageOverview?.failedRequests || 0) }} 失败</span>
-            </span>
-          </div>
+            <div class="metric-row">
+              <div class="usage-value">{{ formatCompact(usageOverview?.totalRequests || 0) }}</div>
+            </div>
 
-          <div class="usage-footer">累计成功率 {{ formatPercent(usageOverview?.successRate || 0) }}</div>
-        </k-card>
+            <div class="usage-footer">累计成功率 {{ formatPercent(usageOverview?.successRate || 0) }}</div>
+          </k-card>
 
-        <k-card class="chatluna-usage-card analytics-success-card">
-          <div class="usage-card-header">
-            <span class="usage-card-heading">
-              <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
-              <span class="usage-title">今日成功率</span>
-              <span class="info-tooltip-wrap">
-                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span class="tooltip-content">今日所有 API 请求的成功率（成功次数 / 总请求次数）</span>
+          <k-card class="chatluna-usage-card analytics-success-card">
+            <div class="usage-card-header">
+              <span class="usage-card-heading">
+                <span class="icon-wrap"><k-icon name="analytic:shield" /></span>
+                <span class="usage-title">今日成功率</span>
+                <span class="info-tooltip-wrap">
+                  <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span class="tooltip-content">今日所有 API 请求的成功率（成功次数 / 总请求次数）</span>
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
 
-          <div class="metric-row">
-            <div class="usage-value">{{ formatPercent(dayStats.successRate) }}</div>
-            <span :class="['trend-badge', successTrend.tone]">
-              <strong>{{ trendSymbol(successTrend.tone) }} {{ successTrend.text }}</strong>
-            </span>
-          </div>
-
-          <div class="usage-footer">{{ successMeta }}</div>
-        </k-card>
-
-        <k-card class="chatluna-usage-card analytics-token-card">
-          <div class="usage-card-header">
-            <span class="usage-card-heading">
-              <span class="icon-wrap"><k-icon name="analytic:token" /></span>
-              <span class="usage-title">Token 用量</span>
-              <span class="info-tooltip-wrap">
-                <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span class="tooltip-content">在所选周期内消耗的 Token 总量，包含输入、输出及缓存</span>
+            <div class="metric-row">
+              <div class="usage-value">{{ formatPercent(dayStats.successRate) }}</div>
+              <span :class="['trend-badge', successTrend.tone]">
+                <strong>{{ trendSymbol(successTrend.tone) }} {{ successTrend.text }}</strong>
               </span>
-            </span>
+            </div>
 
-            <span class="range-tabs" role="tablist" aria-label="Token 统计周期">
-              <button
-                v-for="item in tokenRanges"
-                :key="item.value"
-                :class="{ active: tokenRange === item.value }"
-                type="button"
-                @click="tokenRange = item.value"
-              >{{ item.label }}</button>
-            </span>
-          </div>
+            <div class="usage-footer">{{ successMeta }}</div>
+          </k-card>
 
-          <div class="metric-row">
-            <div class="usage-value token-value">{{ formatToken(tokenStats.totalTokens) }}</div>
-            <span :class="['trend-badge', tokenTrend.tone]">
-              <strong>{{ trendSymbol(tokenTrend.tone) }} {{ tokenTrend.text }}</strong>
-            </span>
-          </div>
+          <k-card class="chatluna-usage-card analytics-token-card">
+            <div class="usage-card-header">
+              <span class="usage-card-heading">
+                <span class="icon-wrap"><k-icon name="analytic:token" /></span>
+                <span class="usage-title">Token 用量</span>
+                <span class="info-tooltip-wrap">
+                  <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <span class="tooltip-content">在所选周期内消耗的 Token 总量，包含输入、输出及缓存</span>
+                </span>
+              </span>
 
-          <div class="token-breakdown">
-            <span>输入 {{ formatToken(tokenStats.inputTokens) }}</span>
-            <span>输出 {{ formatToken(tokenStats.outputTokens) }}</span>
-            <span>缓存 {{ formatToken(tokenStats.cachedTokens) }}</span>
-          </div>
-        </k-card>
+              <span class="range-tabs" role="tablist" aria-label="Token 统计周期">
+                <button
+                  v-for="item in tokenRanges"
+                  :key="item.value"
+                  :class="{ active: tokenRange === item.value }"
+                  type="button"
+                  @click="tokenRange = item.value"
+                >{{ item.label }}</button>
+              </span>
+            </div>
+
+            <div class="metric-row">
+              <div class="usage-value token-value">{{ formatToken(tokenStats.totalTokens) }}</div>
+              <span :class="['trend-badge', tokenTrend.tone]">
+                <strong>{{ trendSymbol(tokenTrend.tone) }} {{ tokenTrend.text }}</strong>
+              </span>
+            </div>
+
+            <div class="token-breakdown">
+              <span>输入 {{ formatToken(tokenStats.inputTokens) }}</span>
+              <span>输出 {{ formatToken(tokenStats.outputTokens) }}</span>
+              <span>缓存 {{ formatToken(tokenStats.cachedTokens) }}</span>
+            </div>
+          </k-card>
+        </div>
 
         <k-card class="chatluna-usage-card analytics-activity-card">
           <div class="usage-card-header">
@@ -292,8 +290,14 @@ function trendSymbol(tone: TrendTone) {
 }
 
 .chatluna-usage-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 3fr 1fr;
   align-items: stretch;
+
+  .usage-cards-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--card-margin);
+  }
 
   @media screen and (max-width: 1600px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
