@@ -120,15 +120,20 @@ export const ModelTrendChart = defineComponent({
           ...Tooltip.axis<number>((params) => {
             const index = params[0]?.dataIndex ?? 0
             const title = axisLabels[index] || ''
-            const rows = params.map((item) => {
-              const series = data[item.seriesIndex ?? 0]
-              const point = series?.points[index]
-              const name = (series?.model ?? item.seriesName ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-              const value = formatTokens(point?.totalTokens ?? 0)
-              const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;vertical-align:middle"></span>`
-              return `<tr><td style="text-align:left;padding:1px 18px 1px 0;white-space:nowrap">${dot}${name}</td><td style="text-align:right;white-space:nowrap;font-weight:700">${value}</td></tr>`
-            }).join('')
-            const total = data.reduce((sum, s) => sum + (s.points[index]?.totalTokens ?? 0), 0)
+            const visible = params
+              .map((item) => {
+                const series = data[item.seriesIndex ?? 0]
+                const point = series?.points[index]
+                const tokens = point?.totalTokens ?? 0
+                if (!tokens) return null
+                const name = (series?.model ?? item.seriesName ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                const value = formatTokens(tokens)
+                const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;vertical-align:middle"></span>`
+                return { html: `<tr><td style="text-align:left;padding:1px 18px 1px 0;white-space:nowrap">${dot}${name}</td><td style="text-align:right;white-space:nowrap;font-weight:700">${value}</td></tr>`, tokens }
+              })
+              .filter((v): v is NonNullable<typeof v> => v !== null)
+            const total = visible.reduce((sum, v) => sum + v.tokens, 0)
+            const rows = visible.map(v => v.html).join('')
             return `<div style="margin-bottom:4px;font-weight:700;color:#374151">日期：${title}</div><table style="border-collapse:collapse">${rows}<tr style="border-top:1px solid rgba(148,163,184,0.3)"><td style="text-align:left;padding:4px 18px 1px 0;white-space:nowrap;font-weight:800">合计</td><td style="text-align:right;padding-top:4px;white-space:nowrap;font-weight:800">${formatTokens(total)}</td></tr></table>`
           }),
           backgroundColor: 'rgba(255,255,255,0.96)',
