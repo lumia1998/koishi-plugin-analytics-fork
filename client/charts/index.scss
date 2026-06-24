@@ -23,6 +23,17 @@
       border-bottom: 2px solid var(--primary);
     }
   }
+
+  .k-card-body {
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+
+    .echarts {
+      flex: 1;
+      min-height: 0;
+    }
+  }
 }
 
 .model-range-tabs {
@@ -58,6 +69,7 @@
 .model-trend-card {
   .k-card-body {
     margin-block: 0.9rem 0.85rem;
+    min-height: unset;
   }
 
   .echarts {
@@ -89,6 +101,7 @@
   .k-card-body {
     margin-block: 0.9rem 0.85rem;
     height: calc(100% - 3rem);
+    min-height: unset;
     display: flex;
     flex-direction: column;
   }
