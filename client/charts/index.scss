@@ -72,12 +72,12 @@
   .k-card-body {
     margin-block: 0.9rem 0.85rem;
     min-height: unset;
-  }
 
-  .echarts {
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0;
+    .echarts {
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0;
+    }
   }
 
   order: -2;
