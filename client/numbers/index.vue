@@ -306,7 +306,8 @@ function trendSymbol(tone: TrendTone) {
 .chatluna-usage-card {
   --usage-accent: #2563eb;
   --usage-accent-soft: rgba(37, 99, 235, 0.08);
-  height: 150px;
+  min-height: 150px;
+  max-height: 150px;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   background: #fff;
@@ -316,7 +317,9 @@ function trendSymbol(tone: TrendTone) {
   :deep(.k-card-body) {
     position: relative;
     box-sizing: border-box;
-    height: 100%;
+    min-height: 150px;
+    max-height: 150px;
+    height: 150px;
     margin: 0;
     padding: 1.1rem 1rem 0.9rem;
   }

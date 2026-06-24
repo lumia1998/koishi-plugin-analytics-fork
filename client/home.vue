@@ -39,9 +39,11 @@ import { ModelPerformancePanel } from './charts/model-performance'
   grid-template-columns: 3fr 1fr;
   gap: var(--card-margin);
   align-items: stretch;
+  margin-bottom: calc(var(--card-margin) * 2);
 
   @media screen and (max-width: 1280px) {
     grid-template-columns: 1fr;
+    margin-bottom: var(--card-margin);
   }
 }
 
