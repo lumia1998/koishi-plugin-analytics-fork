@@ -123,14 +123,19 @@ export const ModelTrendChart = defineComponent({
             const rows = params.map((item) => {
               const series = data[item.seriesIndex ?? 0]
               const point = series?.points[index]
-              const name = series?.model ?? item.seriesName ?? ''
+              const name = (series?.model ?? item.seriesName ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
               const value = formatTokens(point?.totalTokens ?? 0)
-              return `<tr><td class="tooltip-label"><span class="tooltip-dot" style="background:${item.color}"></span>${name}</td><td class="tooltip-value">${value}</td></tr>`
+              const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;vertical-align:middle"></span>`
+              return `<tr><td style="text-align:left;padding:1px 18px 1px 0;white-space:nowrap">${dot}${name}</td><td style="text-align:right;white-space:nowrap;font-weight:700">${value}</td></tr>`
             }).join('')
             const total = data.reduce((sum, s) => sum + (s.points[index]?.totalTokens ?? 0), 0)
-            return `<div class="tooltip-header">日期：${title}</div><table class="tooltip-table">${rows}<tr class="tooltip-total"><td class="tooltip-label">合计</td><td class="tooltip-value">${formatTokens(total)}</td></tr></table>`
+            return `<div style="margin-bottom:4px;font-weight:700;color:#374151">日期：${title}</div><table style="border-collapse:collapse">${rows}<tr style="border-top:1px solid rgba(148,163,184,0.3)"><td style="text-align:left;padding:4px 18px 1px 0;white-space:nowrap;font-weight:800">合计</td><td style="text-align:right;padding-top:4px;white-space:nowrap;font-weight:800">${formatTokens(total)}</td></tr></table>`
           }),
-          extraCssText: 'max-width:280px;white-space:normal;',
+          backgroundColor: 'rgba(255,255,255,0.96)',
+          borderColor: 'rgba(148,163,184,0.25)',
+          borderWidth: 1,
+          padding: [10, 14],
+          extraCssText: 'max-width:280px;border-radius:8px;box-shadow:0 4px 16px rgba(15,23,42,0.1);',
         },
         xAxis: {
           type: 'category',
