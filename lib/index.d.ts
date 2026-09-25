@@ -77,6 +77,19 @@ export interface ModelPerformancePayload {
     week: ModelPerformanceStats[];
     month: ModelPerformanceStats[];
 }
+export interface SourceTokenUsage {
+    source: string;
+    requests: number;
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens: number;
+    totalTokens: number;
+}
+export interface SourceTokenUsagePayload {
+    day: SourceTokenUsage[];
+    week: SourceTokenUsage[];
+    month: SourceTokenUsage[];
+}
 export interface ChatLunaUsageOverview {
     totalRequests: number;
     successfulRequests: number;
@@ -115,6 +128,7 @@ declare class Analytics extends DataService<Analytics.Payload> {
     private getChatLunaUsageOverview;
     private getChatLunaModelUsage;
     private getChatLunaModelTrend;
+    private getChatLunaSourceUsage;
     private getChatLunaModelPerformance;
     download(): Promise<Analytics.Payload>;
     get(): Promise<Analytics.Payload>;
@@ -154,6 +168,7 @@ declare namespace Analytics {
         chatlunaModelUsage: ModelTokenUsagePayload;
         chatlunaModelTrend: ModelUsageTrendPayload;
         chatlunaModelPerformance: ModelPerformancePayload;
+        chatlunaSourceUsage: SourceTokenUsagePayload;
         chatlunaUsageOverview: ChatLunaUsageOverview;
     }
     interface Config {

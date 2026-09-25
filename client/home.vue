@@ -7,6 +7,7 @@
       </div>
       <div class="featured-narrow">
         <ModelPerformancePanel></ModelPerformancePanel>
+        <SourceUsagePanel></SourceUsagePanel>
       </div>
     </div>
     <div class="card-grid chart-grid"><k-slot name="analytic-chart"></k-slot></div>
@@ -18,6 +19,7 @@
 import NumberGrid from './numbers/index.vue'
 import { ModelTrendChart } from './charts/model-token'
 import { ModelPerformancePanel } from './charts/model-performance'
+import { SourceUsagePanel } from './charts/source-usage'
 
 </script>
 
@@ -62,6 +64,7 @@ import { ModelPerformancePanel } from './charts/model-performance'
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--card-margin);
 
   > * {
     flex: 1;

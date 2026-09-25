@@ -1,6 +1,8 @@
 import { Context, store } from '@koishijs/client'
-import { defineComponent, h, ref, resolveComponent } from 'vue'
+import { computed, defineComponent, h, ref, resolveComponent } from 'vue'
 import type { ModelPerformanceStats } from '../../src'
+import { canonicalModelOrder, modelColor } from './model-colors'
+import { useRowCapacity } from './utils'
 
 type Range = 'day' | 'week' | 'month'
 
@@ -32,29 +34,25 @@ function tpsColor(tps: number): string {
   return '#ef4444'
 }
 
-const modelColors = [
-  '#3b82f6',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#06b6d4',
-  '#f97316',
-  '#ec4899',
-  '#64748b',
-  '#84cc16',
-]
-
 export const ModelPerformancePanel = defineComponent({
   name: 'ModelPerformancePanel',
 
   setup() {
     const range = ref<Range>('day')
+    const listEl = ref<HTMLElement>()
+    const capacity = useRowCapacity(listEl)
+
+    const perf = computed(() => (store.analytics?.chatlunaModelPerformance?.[range.value] || []) as ModelPerformanceStats[])
 
     return () => {
       if (!store.analytics) return null
 
-      const perf = (store.analytics?.chatlunaModelPerformance?.[range.value] || []) as ModelPerformanceStats[]
+      const items = perf.value
+      const overflow = items.length > capacity.value
+      const visibleCount = overflow ? Math.max(1, capacity.value - 1) : items.length
+      const visible = items.slice(0, visibleCount)
+      const hidden = items.slice(visibleCount)
+      const colorOrder = canonicalModelOrder(range.value, items.map(item => item.model))
 
       const tabs = (Object.keys(rangeLabel) as Range[]).map(key =>
         h('button', {
@@ -64,10 +62,10 @@ export const ModelPerformancePanel = defineComponent({
         }, [rangeLabel[key]]),
       )
 
-      const rows = perf.length ? perf.map((item, i) => {
-        const color = modelColors[i % modelColors.length]
+      const rows = visible.map((item) => {
+        const color = modelColor(item.model, colorOrder)
         const dotColor = tpsColor(item.avgTps)
-        return h('div', { class: 'perf-row' }, [
+        return h('div', { class: 'perf-row', key: item.model }, [
           h('div', { class: 'perf-row-header' }, [
             h('span', {
               class: 'perf-dot',
@@ -81,14 +79,25 @@ export const ModelPerformancePanel = defineComponent({
             h('span', { class: 'perf-ttft' }, ['TTFT ', formatMs(item.avgTtftMs)]),
           ]),
         ])
-      }) : [h('div', { class: 'perf-empty' }, ['暂无数据'])]
+      })
+
+      if (overflow && hidden.length) {
+        rows.push(h('div', {
+          class: 'perf-row perf-more',
+          title: hidden.map(item => item.model).join('、'),
+        }, [h('span', [`… 还有 ${hidden.length} 个模型`])]))
+      }
+
+      const body = items.length
+        ? h('div', { class: 'perf-list', ref: listEl }, rows)
+        : h('div', { class: 'perf-list', ref: listEl }, [h('div', { class: 'perf-empty' }, ['暂无数据'])])
 
       return h(resolveComponent('k-card'), { class: 'frameless analytic-chart model-perf-card' }, {
         header: () => [
           h('span', { class: 'left' }, ['模型性能']),
           h('span', { class: 'model-range-tabs', role: 'tablist' }, tabs),
         ],
-        default: () => h('div', { class: 'perf-list' }, rows),
+        default: () => body,
       })
     }
   },

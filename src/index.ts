@@ -91,6 +91,21 @@ export interface ModelPerformancePayload {
   month: ModelPerformanceStats[]
 }
 
+export interface SourceTokenUsage {
+  source: string
+  requests: number
+  inputTokens: number
+  outputTokens: number
+  cachedTokens: number
+  totalTokens: number
+}
+
+export interface SourceTokenUsagePayload {
+  day: SourceTokenUsage[]
+  week: SourceTokenUsage[]
+  month: SourceTokenUsage[]
+}
+
 export interface ChatLunaUsageOverview {
   totalRequests: number
   successfulRequests: number
@@ -108,6 +123,7 @@ export interface ChatLunaUsageOverview {
 
 interface ChatLunaUsageRecord {
   model: string
+  source?: string
   success?: boolean
   ttftMs?: number
   totalMs?: number
@@ -808,6 +824,46 @@ class Analytics extends DataService<Analytics.Payload> {
     }
   }
 
+  private async getChatLunaSourceUsage(): Promise<SourceTokenUsagePayload> {
+    const end = new Date()
+    const today = Time.getDateNumber()
+    const ranges = {
+      day: Time.fromDateNumber(today),
+      week: Time.fromDateNumber(getWeekStartDateNumber(today)),
+      month: Time.fromDateNumber(getMonthStartDateNumber(today)),
+    }
+
+    const collect = async (start: Date): Promise<SourceTokenUsage[]> => {
+      try {
+        const rows = await this.ctx.database.get('chatluna_usage' as any, {
+          createdAt: { $gte: start, $lt: end },
+        }) as ChatLunaUsageRecord[]
+        const totals = new Map<string, Omit<ModelTokenUsage, 'model'>>()
+        for (const row of rows) {
+          const source = row.source || '未知来源'
+          const stats = totals.get(source) ?? createEmptyModelUsageStats()
+          addModelUsageStats(stats, row)
+          totals.set(source, stats)
+        }
+        return [...totals.entries()]
+          .map(([source, stats]) => ({ source, ...stats }))
+          .filter(item => item.requests > 0)
+          .sort((a, b) => b.totalTokens - a.totalTokens || b.requests - a.requests)
+      } catch (error) {
+        logger.debug(error)
+        return []
+      }
+    }
+
+    const [day, week, month] = await Promise.all([
+      collect(ranges.day),
+      collect(ranges.week),
+      collect(ranges.month),
+    ])
+
+    return { day, week, month }
+  }
+
   private async getChatLunaModelPerformance(): Promise<ModelPerformancePayload> {
     const end = new Date()
     const today = Time.getDateNumber()
@@ -845,7 +901,6 @@ class Analytics extends DataService<Analytics.Payload> {
             avgTps: stats.tpsCount ? Math.round(stats.tpsSum / stats.tpsCount * 10) / 10 : 0,
           }))
           .sort((a, b) => b.requests - a.requests)
-          .slice(0, 10)
       } catch (error) {
         logger.debug(error)
         return []
@@ -880,6 +935,7 @@ class Analytics extends DataService<Analytics.Payload> {
       chatlunaModelUsage,
       chatlunaModelTrend,
       chatlunaModelPerformance,
+      chatlunaSourceUsage,
       chatlunaUsageOverview,
     ] = await Promise.all([
       this.ctx.database.eval('user', row => $.count(row.id)),
@@ -904,6 +960,7 @@ class Analytics extends DataService<Analytics.Payload> {
       this.getChatLunaModelUsage(),
       this.getChatLunaModelTrend(),
       this.getChatLunaModelPerformance(),
+      this.getChatLunaSourceUsage(),
       this.getChatLunaUsageOverview(),
     ])
     return {
@@ -920,6 +977,7 @@ class Analytics extends DataService<Analytics.Payload> {
       chatlunaModelUsage,
       chatlunaModelTrend,
       chatlunaModelPerformance,
+      chatlunaSourceUsage,
       chatlunaUsageOverview,
     }
   }
@@ -974,6 +1032,7 @@ namespace Analytics {
     chatlunaModelUsage: ModelTokenUsagePayload
     chatlunaModelTrend: ModelUsageTrendPayload
     chatlunaModelPerformance: ModelPerformancePayload
+    chatlunaSourceUsage: SourceTokenUsagePayload
     chatlunaUsageOverview: ChatLunaUsageOverview
   }
 
